@@ -1,0 +1,226 @@
+---
+title: "Apply a mask to raster images"
+author: "Erick Bolaños Duran"
+date: "`r Sys.Date()`"
+output:
+    rmdformats::readthedown:
+    code_folding: show
+    highlight: kate
+    toc_depth: 2
+    number_sections: no
+    self_contained: true
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{=html}
+<style>
+  #content {
+    max-width: 1400px;
+  }
+  #sidebar h2 {
+    background-color: #008B8B;
+  }
+  
+  h1, h2 {
+    color: #008B8B;
+  }
+</style>
+```
+```{r setup, include=FALSE}
+
+#No MOVER!!!!!
+
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, #error=FALSE,
+                      echo = TRUE,
+                      fig.path="figures_Rtemplate/",
+                      #dev='pdf', #Activar esta opción si se quiere obtener PDF
+                      fig.width = 8,
+                      fig.height = 4,
+                      fig.align="center")
+library(dplyr)
+library(ggplot2)
+library(plotly)
+library(googleVis)
+library(knitr)
+library(summarytools)
+library(forcats)
+library(ggpubr)
+
+#Ubicación guia
+#E:\X\Cursos\Taller Bioinformatica
+```
+
+```{r, warning=FALSE, message=FALSE, fig.align="center", fig.width=4, fig.height=2, fig.cap="Fig.1 Mapa del area de estudio"}
+
+## ==============================================================
+  
+  # Title:3_Mask_raster
+  # Author details: Erick Bolaños Duran
+  # Contact details: ebduran@pg.cibnor.mx
+  # Script and data info: This script help to mask raster into a desirable area
+  # Copyright (c): 2023 Erick Bolaños Duran
+
+## ==============================================================
+
+  
+## Dependencies ==============================================================
+library(rerddapXtracto)
+library(lubridate)
+library(ncdf4)
+library(httr)
+library(rgdal)
+library(spatialEco)
+library(raster)
+library(dplyr)
+library(tidyr)
+library(lubridate)
+library(data.table)
+library(rgeos)
+library(sp)
+library(usdm)
+library(raster)
+library(sf)
+library(udunits2)
+library(rnaturalearth) 
+library(rnaturalearthdata) 
+#####open SST raster####
+##Set directory 
+setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/01_Daily_data/01_SST_data")
+#Open SST rasta layers
+SST_OM=stack("OM_SST_POT.tiff")
+###Plot the SST_OM layer
+plot(SST_OM)
+###There are some white lines that have to been eliminated
+hist(SST_OM)#That white lines have values of zero
+###To eliminate zero on raster layer
+SST_OM[SST_OM<=2]=NA
+SST_OM
+###Now everything has valuene >15 °C
+hist(SST_OM)
+###Open OSD layer
+SST_OSD=stack("OSD_SST_POT.tif")
+####Open Maximun monthly mean of SST, we have to eliminate zero values as above 
+SST_MMM=stack("MMMax_SST_POT_1998-2020.tif")
+hist(SST_MMM)
+SST_MMM[SST_MMM<=2]=NA
+SST_MMM
+hist(SST_MMM)
+plot(SST_MMM)
+####Open Minimun monthly mean of SST, we have to eliminate zero values as above 
+SST_MMm=stack("MMmin_SST_POT_1998-2020.tif")
+SST_MMm
+SST_MMm[SST_MMm<=2]=NA
+SST_MMm
+plot(SST_MMm)
+#Save all raster that were corrected in other folder 
+setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/03_Data_resample")
+writeRaster(SST_OM,"01_OM_SST.tif", overwrite=T)
+writeRaster(SST_OSD,"02_OSD_SST.tif", overwrite=T)
+writeRaster(SST_MMM,"03_MMMax_SST.tif", overwrite=T)
+writeRaster(SST_MMm,"04_MMmin_SST.tif", overwrite=T)
+###open SSS raster####
+setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/02_Monthly_data/01_SSS_data")
+#Open OM SSS
+SSS_OM=stack("OM_SSS_POT_1998-2020.tif")
+SSS_OM#It has different resolution than SST raster images, we need change to same resolution
+SSS_OM=resample(SSS_OM,SST_OM) # resample the SS_OM to the same resolution as SST
+#Save the resample raster of SSS
+#Open OSD SSS
+SSS_OSD=stack("OSD_SSS_POT_1998-2020.tif")
+SSS_OSD=resample(SSS_OSD,SST_OM) # resample the SSS_OSD to the same resolution as SST
+#Save the raster corrected
+setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/03_Data_resample")
+writeRaster(SSS_OM,"05_OM_SSS.tif", overwrite=T)
+writeRaster(SSS_OSD,"06_OSD_SSS.tif", overwrite=T)
+###Open Kd490 raster#####
+setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/02_Monthly_data/02_Kd490_data/")
+#####OM KD490
+kd_OM=stack("OM_kd490_POT_1998-2020.tif")
+kd_OM=resample(kd_OM,SST_OM) # resample the kd_OM to the same resolution as SST
+####OSD_KD490
+kd_OSD=stack("OSD_K490_POT_2003-2020.tif")
+kd_OSD=resample(kd_OSD,SST_OM) # resample the kd_OSD to the same resolution as SST
+#Save the raster resampled 
+setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/03_Data_resample")
+writeRaster(kd_OM,"07_OM_Kd490.tif", overwrite=T)
+writeRaster(kd_OSD,"08_OSD_Kd490.tif", overwrite=T)
+#####Open Chlorophyll a raster####
+setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/02_Monthly_data/03_Cha_data/")
+#####OM Cha
+cha_OM=stack("OM_cha_POT_1998-2020.tif")
+cha_OM=resample(cha_OM,SST_OM) # resample the cha_OM to the same resolution as SST
+####OSD_cha
+cha_OSD=stack("OSD_cha_POT_2003-2020.tif")
+cha_OSD=resample(cha_OSD,SST_OM) # resample the cha_OSD to the same resolution as SST
+#Save the raster 
+setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/03_Data_resample")
+writeRaster(cha_OM,"09_OM_Cha.tif", overwrite=T)
+writeRaster(cha_OSD,"10_OSD_cha.tif", overwrite=T)
+###Open pH raster####
+setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/02_Monthly_data/04_pH_data/")
+#####OM pH
+ph_OM=stack("OM_pH_POT_1998-2020.tif")
+ph_OM=resample(ph_OM,SST_OM) # resample the ph_OM to the same resolution as SST
+####OSD pH
+ph_OSD=stack("OSD_pH_POT_1998-2020.tif")
+ph_OSD=resample(ph_OSD,SST_OM) # resample the ph_OSD to the same resolution as SST
+#Save the raster 
+setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/03_Data_resample")
+writeRaster(ph_OM,"11_OM_pH.tif", overwrite=T)
+writeRaster(ph_OSD,"12_OSD_pH.tif", overwrite=T)
+###Open SCV raster
+setwd("~/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/02_Monthly_data/05_SCV_data/")
+###OM SCV
+SCV_OM=stack("POT_SCV_OM.tif")
+SCV_OM=resample(SCV_OM,SST_OM) # resample the ph_OSD to the same resolution as SST
+###OSD SCV
+SCV_OSD=stack("POT_SCV_OSD.tif")
+SCV_OSD=resample(SCV_OSD,SST_OM)
+#Save the raster 
+setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/03_Data_resample")
+writeRaster(SCV_OM,"13_OM_SCV.tif", overwrite=T)
+writeRaster(SCV_OSD,"14_OSD_SCV.tif", overwrite=T)
+```
+
+## Apply the mask 
+<p> 
+
+
+Open all raster images and the **shapefile** that correspond to a vector layer of  the Eastern Tropical Pacific acording to Spalding et al., 2007.</p>
+```{r, warning=FALSE, message=FALSE, fig.align="center", fig.width=8, fig.height=4, fig.cap="Fig.1 Mapa del area de estudio"}
+infolder <- "C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/"
+
+#Loading the mask
+POT.mask <- shapefile(paste(infolder, '/04_Data_masked/00_POT_mask/mas.shp', sep="")) 
+plot(POT.mask)
+#reading the data and masking land and pacific
+mylayers <- c("01_OM_SST","02_OSD_SST","03_MMMax_SST","04_MMmin_SST","05_OM_SSS", "06_OSD_SSS", "07_OM_Kd490", "08_OSD_Kd490",
+              "09_OM_Cha", "10_OSD_cha","11_OM_pH","12_OSD_pH","13_OM_SCV","14_OSD_SCV")
+for (i in 1: length(mylayers)){
+  print(i)
+  #Reading
+  thislayer <- raster(paste(infolder, '03_Data_resample/', mylayers[i], '.tif', sep=""))
+  #Masking land and pacific
+  thislayer <- mask(thislayer, POT.mask)
+  #Saving the data as a stack to check it and as a vector
+  if (i==1){
+    thisstack <- thislayer
+  }else{
+    thisstack <- stack(thisstack, thislayer)}  
+}
+#To change the names o the thisstack object
+name.layers=c("01_OM_SST","02_OSD_SST","03_MMMax_SST","04_MMmin_SST","05_OM_SSS", "06_OSD_SSS", "07_OM_Kd490", "08_OSD_Kd490",
+              "09_OM_Cha", "10_OSD_cha","11_OM_pH","12_OSD_pH","13_OM_SCV","14_OSD_SCV")
+
+names(thisstack)=name.layers
+##check that names were changed
+plot(thisstack$X04_MMmin_SST)
+###Save each layer masked
+setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/04_Data_masked")
+# exportar
+lapply(names(thisstack), function(x){
+  writeRaster(thisstack[[x]], paste0(x,".tif"),overwrite=TRUE)})
+```
+
