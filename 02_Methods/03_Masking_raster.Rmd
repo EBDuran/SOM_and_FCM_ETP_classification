@@ -30,7 +30,6 @@ editor_options:
 ```
 ```{r setup, include=FALSE}
 
-#No MOVER!!!!!
 
 knitr::opts_chunk$set(warning=FALSE, message=FALSE, #error=FALSE,
                       echo = TRUE,
@@ -48,8 +47,6 @@ library(summarytools)
 library(forcats)
 library(ggpubr)
 
-#Ubicación guia
-#E:\X\Cursos\Taller Bioinformatica
 ```
 
 ```{r, warning=FALSE, message=FALSE, fig.align="center", fig.width=4, fig.height=2, fig.cap="Fig.1 Mapa del area de estudio"}
