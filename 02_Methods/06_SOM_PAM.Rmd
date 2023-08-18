@@ -1,0 +1,335 @@
+---
+title: "SOM analysis and PAM partitioning"
+author: "Erick Bolaños Duran <p>***Email:*** ebduran@pg.cibnor.mx<br>"
+date: "`r Sys.Date()`"
+output:
+    rmdformats::readthedown:
+    code_folding: show
+    highlight: kate
+    toc_depth: 2
+    self_contained: true
+    number_sections: true
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{=html}
+<style>
+  #content {
+    max-width: 1400px;
+  }
+  #sidebar h2 {
+    background-color: #008B8B;
+  }
+  
+  h1, h2 {
+    color: #008B8B;
+  }
+</style>
+```
+```{r setup, include=FALSE}
+
+
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, 
+                      echo = TRUE,
+                      fig.path="figures_Rtemplate/",
+                      dev='pdf', 
+                      fig.width = 15,
+                      fig.height = 15,
+                      fig.align="center")
+library(dplyr)
+library(ggplot2)
+library(plotly)
+library(googleVis)
+library(knitr)
+library(kableExtra)
+library(DT)
+library(summarytools)
+library(forcats)
+library(ggpubr)
+
+
+```
+
+#SOM analysis using enviroment data
+
+<hr>
+
+## 1.-Estandarization
+
+<p>Open ***.tiff*** of enviromental descriptors .</p>
+
+```{r Open environment data and standarize, warning=FALSE, message=FALSE }
+## ==============================================================
+  
+  # Title:5_SOM analysis
+  # Author details: Erick Bolaños Duran
+  # Contact details: ebduran@pg.cibnor.mx
+  # Script and data info: This script help to perform a SOM model
+  # Copyright (c): 2023 Erick Bolaños Duran
+
+## ==============================================================
+## Funtions===================================================================
+### A funtion to Scale all variables to give them equal importance during the SOM training process. 
+normalize =function(x) {
+  min=raster::minValue(x)
+  max=raster::maxValue(x)
+  return((x - min) / (max - min))
+}
+###A funtion for color plots
+coolBlueHotRed= function(n,alpha=1)
+{rainbow(n, end = 4/6, alpha = alpha)[n:1]
+  
+}
+## Dependencies ==============================================================
+
+library(raster)
+library(kohonen)
+library(terra)
+library(rassta)
+library(fpc)#to validate clusters
+library(factoextra)
+library(ggspatial)
+library(ggspatial)
+library(broom)
+######Open non correlated data
+ft =list.files(path = "d:/Estudiantes/Erick_Bolaños/01_Tesis/01_Paper_submition/02_Data/05_Non_correlated_data/" ,full.names = T,pattern = ".tif$",all.files=TRUE)
+rast_1=stack(ft)
+#change names of layer
+layer.names=c("MaxMMSST","minMMSST","OMKD490","OMpH","OM_SCV","OM_SSS","OSD_pH")
+names(rast_1)=layer.names
+###Scale the env variables using the previous function
+rast_1=normalize(rast_1)
+########They are already normalized, now we are going to open the raster with the terra package, for this we have to change the object with the rast function
+env.data=terra::rast(rast_1)
+```
+
+## 2.- Making SOM and finding clusters inside it using PAM
+
+<p>After selection of the best grid size in the last step, we use a A
+8x9 grid arrangement, hexagonal topology for each neuron was selected.
+1000 iteration (***rlen***) with a learning rate in default value(to
+decline linearly from 0.05 to 0.01 over *rlen* updates) were selected to
+train the SOM with the input data (environmental variables).</p>
+
+<p>Once the dimensional reduction was performed, in a second step
+***som_gap*** function can find the best partition of SOM map using the
+weight vectors of nodes (codebooks) using Partitioning Around Medoids
+(PAM). To perform the PAM we use a ***K.max*** of 4-25k and 1000
+bootstraps (***B***).</p>
+
+<p>Finally the ***som_gap*** uses GAP static to find the optimal number
+of K in PAM of the SOM. Here a *globalSEmax* criteria was used in GAP
+static .</p>
+
+```{r Performing SOM, warning=FALSE, message=FALSE,fig.align="center"}
+#############Grid 8x9#####
+set.seed(963) ##to reproductibility 
+tsom8x9<-som_gap(env.data, xdim =8, ydim=9,rlen = 1000, mode = "online", K.max =25 ,B = 1000, topo="hexagonal",
+                 neighbourhood.fct = "gaussian", method = "globalSEmax")
+```
+
+## 3.- Results from SOM
+
+<p>Shows the weight of the variable in each output neuron #Training
+progress for SOM.</p>
+
+```{r , warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10,fig.cap="Fig.1. SOM codebooks of environment data" }
+plot(tsom8x9$SOM)
+```
+
+<p>As the SOM training iterations progress, the distance from each
+node's weights to the samples represented by that node is reduced.
+Ideally, this distance should reach a minimum plateau.</p>
+
+```{r, warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10,fig.cap="Fig.2. SOM training iteration progress" }
+plot(tsom8x9$SOM, type="changes")
+```
+
+<p>This visualization is of the distance between each node and its
+neighbours.</p>
+
+```{r, warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10,fig.cap="Fig.3. U-matrix of SOM" }
+plot(tsom8x9$SOM, type="dist.neighbours", main = "SOM neighbour distances")
+```
+
+<p>A SOM heatmap allows the visualization of the distribution of a
+single variable across the map. Typically, a SOM investigative process
+involves the creation of multiple heatmaps, and then the comparison of
+these heatmaps to identify interesting areas on the map.</p>
+
+<p>**MaxSST**.</p>
+
+```{r, warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10,fig.cap="Fig.4. Heatmap of the contribution of MaxSST in the SOM map" }
+plot(tsom8x9$SOM, type = "property", property = getCodes(tsom8x9$SOM)[,1],palette.name=coolBlueHotRed, main="MaxSST",shape = "straight")
+```
+
+<p>**MinSST**.</p>
+
+```{r, warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10,fig.cap="Fig.5. Heatmap of the contribution of MinSST in the SOM map" }
+plot(tsom8x9$SOM, type = "property", property = getCodes(tsom8x9$SOM)[,2],palette.name=coolBlueHotRed, main="MinSST",shape = "straight")
+```
+
+<p>**OM KD490**.</p>
+
+```{r, warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10,fig.cap="Fig.6. Heatmap of the contribution of OM KD490 in the SOM map"}
+plot(tsom8x9$SOM, type = "property", property = getCodes(tsom8x9$SOM)[,3],palette.name=coolBlueHotRed, main="OMKD490",shape = "straight")
+```
+
+<p>**OM pH**.</p>
+
+```{r, warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10,fig.cap="Fig.7. Heatmap of the contribution of OM pH in the SOM map" }
+plot(tsom8x9$SOM, type = "property", property = getCodes(tsom8x9$SOM)[,4],palette.name=coolBlueHotRed, main="OMpH",shape = "straight")
+```
+
+<p>**OM SCV**.</p>
+
+```{r, warning=FALSE, message=FALSE,fig.width=10, fig.height=10,fig.align="Fig.8. Heatmap of the contribution of OM SCV in the SOM map"}
+plot(tsom8x9$SOM, type = "property", property = getCodes(tsom8x9$SOM)[,5],palette.name=coolBlueHotRed, main="OMSCV",shape = "straight")
+```
+
+<p>**OM SSS**.</p>
+
+```{r, warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10,fig.cap="Fig.9. Heatmap of the contribution of OM SSS in the SOM map"}
+plot(tsom8x9$SOM, type = "property", property = getCodes(tsom8x9$SOM)[,6],palette.name=coolBlueHotRed, main="OMSSS",shape = "straight")
+```
+
+<p>**OSD pH**.</p>
+
+```{r, warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10,fig.cap="Fig.10. Heatmap of the contribution of OSD pH in the SOM map" }
+plot(tsom8x9$SOM, type = "property", property = getCodes(tsom8x9$SOM)[,7],palette.name=coolBlueHotRed, main="OSDpH",shape = "straight")
+```
+
+## 4.- Optimal numbers of Gap static
+
+<p>Selection of the optimal number of clusters using GAP from SOM-PAM
+partitioning</p>
+
+```{r GAP static,fig.align="center", fig.height=15, fig.width=15,fig.cap="Fig.11. Determining the best grid option based in number of clusters (K) selected by GAP static (Gapk) after the SOM model"}
+
+Gap_8x9=fviz_gap_stat(tsom8x9$SOMgap, maxSE=list(method = "globalSEmax"))+expand_limits(x=c(1,25), y=c(-0.50, 1.5)) +
+  labs(title="Optimal number of cluster with SOM grid array of 8x9",
+       x="Number of cluster (K)", y="Gap static (GapK)")+
+  theme(axis.text.x=element_text(size=26, family = "serif"),
+        axis.title= element_text(size=28, family = "serif"),
+        axis.text.y = element_text(size=26, family = "serif"),
+        plot.title = element_text(size=30, family = "serif",hjust = 0.5) )
+
+Gap_8x9
+```
+
+## 5.- Rasterization of SOM-PAM result
+
+<p>The classification of the SOM model derived from the PAM analysis and
+the K chosen by GAP were rasterized with the ***som_pam*** function in
+the *rassta* package, which creates a raster version of the SOM output
+layer and PAM clustering (SOM-PAM) that will correspond to the Eastern
+Tropical Pacific (ETP) classification</p>
+
+```{r SOM-PAM rasterization, warning=FALSE, message=FALSE,fig.align="center", fig.width=15, fig.height=15, fig.cap= "Fig.12. The  SOM-PAM classification of ETP,each color corresponds to the group selected by GAP static"}
+#RASTERIZATION Of SOM with PAM algorithm 
+setwd("d:/Estudiantes/Erick_Bolaños/01_Tesis/01_Seascape_characterization/11_SOM_8x9/03_Results/")
+
+tpam8x9=som_pam(ref.rast= env.data, kohsom = tsom8x9$SOM, k=tsom8x9$Kopt)
+pam_final8x9=tpam8x9$sompam.rast$SOMPAM
+plot(pam_final8x9, main=" ETP SOM-PAM classification (13 groups)")
+raster::writeRaster(pam_final8x9, "PAMfinal_SOM8x9_2.tif", overwrite=T)  #To save the raster of SOM-PAM classification and modify in a GIS program 
+
+```
+
+<p>We can see the ETP SOM-PAM classification in a PCA and the percentage
+of variation of each component</p>
+
+```{r fig.align="center", fig.width=10, fig.height=10, fig.cap= "Fig.13. PCA (1 and 2 axis) of the  SOM-PAM classification of ETP,each color corresponds to the group selected by GAP static"}
+
+
+Axis1_28x9=fviz_cluster(tpam8x9$sompam, 
+                     palette =c("#296ca7","#2ba9bd","#006837","#67b462","#b52f8c","#fde725","#57106e","#bcdc3c","#d8e98a","#ef6f45","#e0b91c","#fdae66","#ff9e17","#a30f28","#c43c39"),
+                     ellipse.type ="convex",
+                     repel =TRUE,
+                     ggtheme =theme_minimal(), axes = c(1,2), geom = "text", main="PAM clustering of SOM")+
+  theme(axis.text.x=element_text(size=21, family = "serif"),
+        axis.title= element_text(size=25, family = "serif"),
+        axis.text.y = element_text(size=21, family = "serif"),
+        plot.title = element_text(size=28, family = "serif",hjust = 0.5) )
+Axis1_28x9
+```
+
+```{r fig.align="center", width=10, fig.height=10, fig.cap= "Fig.14. PCA (1 and 3 axis) of the  SOM-PAM classification of ETP,each color corresponds to the group selected by GAP static"}
+Axis1_38x9=fviz_cluster(tpam8x9$sompam, 
+                     palette =c("#296ca7","#2ba9bd","#006837","#67b462","#b52f8c","#fde725","#57106e","#bcdc3c","#d8e98a","#ef6f45","#e0b91c","#fdae66","#ff9e17","#a30f28","#c43c39"),
+                     ellipse.type ="convex",
+                     repel =TRUE,
+                     ggtheme =theme_minimal(), axes = c(1,3), geom = "text", main="PAM clustering of SOM")+
+  theme(axis.text.x=element_text(size=21, family = "serif"),
+        axis.title= element_text(size=25, family = "serif"),
+        axis.text.y = element_text(size=21, family = "serif"),
+        plot.title = element_text(size=28, family = "serif",hjust = 0.5) )
+Axis1_38x9
+```
+
+```{r fig.align="center", width=10, fig.height=10, fig.cap= "Fig.15. PCA (3 and 2 axis) of the  SOM-PAM classification of ETP,each color corresponds to the group selected by GAP static"}
+Axis2_38x9=fviz_cluster(tpam8x9$sompam, 
+                     palette =c("#296ca7","#2ba9bd","#006837","#67b462","#b52f8c","#fde725","#57106e","#bcdc3c","#d8e98a","#ef6f45","#e0b91c","#fdae66","#ff9e17","#a30f28","#c43c39"),
+                     ellipse.type ="convex",
+                     repel =TRUE,
+                     ggtheme =theme_minimal(), axes = c(2,3), geom = "text", main="PAM clustering of SOM")+
+  theme(axis.text.x=element_text(size=31, family = "serif"),
+        axis.title= element_text(size=35, family = "serif"),
+        axis.text.y = element_text(size=31, family = "serif"),
+        plot.title = element_text(size=38, family = "serif",hjust = 0.5) )
+
+Axis2_38x9
+
+```
+
+<p>
+
+Finally, we can add the partition selected by GAP in the SOM output
+
+```{r, warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10,fig.cap= "Fig.16. SOM partitioning based in PAM and GAP stati and  codebooks of environment data"}
+###1.- A table is created with the groups assigned by GAP to each of the neurons of the output layer
+PAMclust8x9=tpam8x9$sompam[3]
+PAMclustdf8x9=as.data.frame(PAMclust8x9)
+
+####Se crea el plot de la capa de salida con los colores deados
+plot(tsom8x9$SOM, type = "codes", shape = "straight", bgcol=c("#296ca7","#2ba9bd","#006837","#67b462","#b52f8c","#fde725","#57106e","#bcdc3c","#d8e98a","#ef6f45","#e0b91c","#fdae66","#ff9e17","#a30f28","#c43c39")[PAMclust8x9$clustering])
+add.cluster.boundaries(tsom8x9$SOM,PAMclust8x9$clustering)
+```
+
+<p>We can plot the SOM-PAM map using the ggplot package, first is
+required to open a shapefile that corresponds to the base pam of ETP.
+Then it is essential to use the raster image of the SOM-PAM
+classification derived in the previews steps.</p>
+
+```{r Mapping SOM-PAM in ggplot, warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10,fig.cap= "Fig.17. The  SOM-PAM classification of ETP,each color corresponds to the group selected by GAP static"}
+##Add the polygon of ETP
+#open the shapefile of ETP
+setwd("d:/Estudiantes/Erick_Bolaños/01_Tesis/01_Seascape_characterization/09_FCM_bien/")
+ETP=shapefile("Americas.shp")
+####MAP ETP
+ETP_1=tidy(ETP)
+####Open the raster image of te SOM-PAM classification
+setwd("d:/Estudiantes/Erick_Bolaños/01_Tesis/01_Seascape_characterization/11_SOM_8x9/03_Results/")
+SOM_PAM_raster=stack("PAMfinal_8x9.tif")
+##Create a dataframe based in the raster 
+SOM_PAM_raster_df <- as.data.frame(SOM_PAM_raster, xy = TRUE) %>%
+  na.omit()
+colnames(SOM_PAM_raster_df) <- c('Longitude','Latitude','SOM_PAM')
+####Create the plot using ggplot 
+SOM_PAM_classification=ggplot() +
+  geom_raster(data = SOM_PAM_raster_df, aes(x = Longitude, y = Latitude, fill = factor(SOM_PAM))) +
+  scale_fill_manual(values=c("#296ca7","#2ba9bd","#006837","#67b462","#b52f8c","#57106e","#fde725","#bcdc3c","#d8e98a","#ef6f45","#e0b91c","#fdae66","#ff9e17","#a30f28","#c43c39"), name = "SOM-PAM groups")+
+  geom_polygon(data = ETP_1, aes( x = long, y = lat, group = group), fill="gray", color="black")+
+  coord_sf(xlim = c(-117, -78),ylim = c(-6, 31))+theme_bw()+ labs(x = "Longitude",y = "Latitude",title="SOM-PAM classification")+
+  theme(axis.title.x = element_text(size=20, family = "serif",color = "black"),
+        axis.text.x = element_text(size=20, family = "serif",color = "black"),
+        axis.title.y = element_text(size=20, family = "serif",color = "black"),
+        axis.text.y = element_text(size=20, family = "serif",color = "black"),
+        legend.text =element_text(size=20, family = "serif",color = "black"),
+        legend.title = element_text(size=20, family = "serif",color = "black"),
+        plot.title = element_text(size=24, family = "serif",color = "black",hjust=0.5))
+SOM_PAM_classification 
+
+```

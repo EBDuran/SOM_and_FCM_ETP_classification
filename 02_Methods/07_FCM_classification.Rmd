@@ -1,0 +1,313 @@
+---
+title: "FCM clustering of ETP"
+author: "Erick Bolaños Duran <p>***Email:*** ebduran@pg.cibnor.mx<br>"
+date: "`r Sys.Date()`"
+output:
+    rmdformats::readthedown:
+    code_folding: show
+    highlight: kate
+    toc_depth: 2
+    number_sections: no
+    self_contained: true
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+```{=html}
+<style>
+  #content {
+    max-width: 1400px;
+  }
+  #sidebar h2 {
+    background-color: #008B8B;
+  }
+  
+  h1, h2 {
+    color: #008B8B;
+  }
+</style>
+```
+```{r setup, include=FALSE}
+
+#No MOVER!!!!!
+
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, #error=FALSE,
+                      echo = TRUE,
+                      fig.path="figures_Rtemplate/",
+                      #dev='pdf', #Activar esta opción si se quiere obtener PDF
+                      fig.width = 8,
+                      fig.height = 4,
+                      fig.align="center")
+library(dplyr)
+library(ggplot2)
+library(plotly)
+library(knitr)
+library(summarytools)
+library(forcats)
+library(ggpubr)
+library(kableExtra)
+
+#Ubicación guia
+#E:\X\Cursos\Taller Bioinformatica
+```
+
+# FCM clustering analysis using enviroment data
+<hr>
+
+## 1.-Estandarization
+
+<p>Open ***.tiff*** of environmental descriptors.</p>
+
+```{r Open environment data and standarize, warning=FALSE, message=FALSE }
+## ==============================================================
+  
+  # Title:6_FCM analyzes
+  # Author details: Erick Bolaños Duran
+  # Contact details: ebduran@pg.cibnor.mx
+  # Script and data info: This script help to perform FCM clustering using satellital data from ETP
+  # Copyright (c): 2023 Erick Bolaños Duran
+
+## ==============================================================
+## Funtions===================================================================
+### A funtion to Scale all variables to give them equal importance during the SOM training process. 
+normalize =function(x) {
+  min=raster::minValue(x)
+  max=raster::maxValue(x)
+  return((x - min) / (max - min))
+}
+###A funtion for color plots
+coolBlueHotRed= function(n,alpha=1)
+{rainbow(n, end = 4/6, alpha = alpha)[n:1]
+  
+}
+## Dependencies ==============================================================
+library(terra)
+library(geocmeans)
+library(ggplot2)
+library(ggpubr)
+library(dplyr)
+library(viridis)
+library(spdep)
+library(tmap)
+library(cowplot)
+library(geojsonio)
+library(sf)
+library(raster)
+library(broom)
+library(factoextra)
+library(heatmaply)
+library(plotly)
+######Open non correlated data
+ft =list.files(path = "d:/Estudiantes/Erick_Bolaños/01_Tesis/01_Paper_submition/02_Data/05_Non_correlated_data/" ,full.names = T,pattern = ".tif$",all.files=TRUE)
+rast_1=stack(ft)
+#change names of layer
+layer.names=c("MaxMMSST","minMMSST","OMKD490","OMpH","OM_SCV","OM_SSS","OSD_pH")
+names(rast_1)=layer.names
+###Scale the env variables using the previous function
+rast_1=normalize(rast_1)
+########They are already normalized, now we are going to open the raster with the terra package, for this we have to change the object with the rast function
+env.data=terra::rast(rast_1)
+# giving a name to each band
+dataset <- lapply(names(env.data), function(n){
+  aband <- env.data[[n]]
+  return(aband)
+})
+
+```
+## 2.- Fuzzy c-means (FCM) classification 
+<hr>
+<p>First, an FCM algorithm was used, which classifies based on the degree of membership (m) of an object to a cluster by its degree of belonging to it. </p>
+<p>We selected the degree of fuzziness (m) and the optimal number of K for all FCM algorithms using the ***select_parameters.mc *** function. We used possible values of M between 1 and 2 with a step of 0.01 to select an appropriate value for these parameters. For K, the range of values was from 5 to 20. In the same function, to evaluate the effect of the parameter value and to decide the optimal value, we used the quality indices, the Silhouette Index (IS) and the Explained Inertia (EI).</p>
+
+```{r FCM parametrization, warning=FALSE, message=FALSE}
+future::plan(future::multisession(workers = 6))
+FCMvalues = select_parameters.mc(algo = "FCM", data = dataset, 
+                                 k = 5:20, m = seq(1.1,2,0.1), spconsist = FALSE, 
+                                 indices = c("Explained.inertia",
+                                             "Silhouette.index"),
+                                 verbose = TRUE)
+```
+<p>We can plot the impact of m and k on SI and EI</p>
+```{r FCM plots parametrization , warning=FALSE, message=FALSE,fig.width=10, fig.height=10,fig.cap="Fig.1. Impact of m and k on silhouette index and Explained Inertia"}
+FCMSI=ggplot(FCMvalues) + 
+  geom_raster(aes(x = m, y = k, fill = Silhouette.index)) + 
+  geom_text(aes(x = m, y = k, label = round(Silhouette.index,2)), size = 2)+
+  scale_fill_viridis() +
+  coord_fixed(ratio=0.091)+
+  theme_bw()+
+  theme(text = element_text(size = 20, family = "serif"))
+FCMEI=ggplot(FCMvalues)+ 
+  geom_raster(aes(x = m, y = k, fill = Explained.inertia)) + 
+  geom_text(aes(x = m, y = k, label = round(Explained.inertia,2)), size =2)+
+  scale_fill_viridis() +
+  coord_fixed(ratio=0.091)+
+  theme_bw()+
+  theme(text = element_text(size = 20, family = "serif"))
+plot1=plot_grid(FCMSI,FCMEI,labels=c("A","B"),label_fontfamily = "serif", label_size = 20)
+plot1
+```
+<p>Considering the results above, a K=13 and a parameter of m=1.2 were selected, which resulted in an appropriate clustering and appropriate degree of fuzziness (SI=0.48 and EI=0.78).</p>
+
+```{r FCM , warning=FALSE, message=FALSE}
+FCM_result =CMeans(dataset, k = 13, m = 1.2, standardize = F,
+                  verbose = FALSE, seed = 789, tol = 0.001, init = "kpp")
+```
+
+<p> We can now map the membership matrices and the most likely group for each observation. To do this, we use the mapClusters function from geocmeans. A threshold of 0.75 is suggested here. An observation will be labeled "undecided" if it has only values below this probability in a membership matrix.. </p>
+```{r FCM plot, warning=FALSE, message=FALSE,fig.width=10, fig.height=10,fig.cap="Fig.2. Classification of ETP based in FCM "}
+setwd("D:/Estudiantes/Erick_Bolaños/01_Tesis/01_Seascape_characterization/06_Scripts")
+ETP=shapefile("Americas.shp")
+####MAP ETP
+ETP_1=tidy(ETP)
+###MAP FCM result
+maps1 = mapClusters(object = FCM_result, undecided = 0.75)
+####Plot the FCM result adding the ETP polygon in ggplot
+FCM_map=maps1$ClusterPlot +  scale_fill_manual(values=c("#fdae66", "#2ba9bd","#67b462","#b52f8c","#d8e98a","#57106e","#006837","#ef6f45","#c43c39","#bcdc3c","#a30f28","#fde725","#296ca7" , "#54323b"),
+                                               name = "FCM groups", labels = c("1", "2", "3","4","5","6","7","8","9","10","11","12","13","Unclassified"))+ 
+  geom_polygon(data = ETP_1, aes( x = long, y = lat, group = group), fill="#c1c1c1", color="black")+coord_sf(xlim = c(-117, -78), ylim = c(-6, 31))+
+  theme_bw()+ labs(x = "Longitude",y = "Latitude",
+                   title="FCM classification")+
+  theme(axis.title.x = element_text(size=16, family = "serif",color = "black"),
+        axis.text.x = element_text(size=14, family = "serif",color = "black"),
+        axis.title.y = element_text(size=16, family = "serif",color = "black"),
+        axis.text.y = element_text(size=14, family = "serif",color = "black"),
+        legend.text =element_text(size=20, family = "serif",color = "black"),
+        legend.title = element_text(size=20, family = "serif",color = "black"),
+        plot.title = element_text(size=24, family = "serif",color = "black",hjust=0.5))
+
+FCM_map        
+```
+## 3.- Generalized Fuzzy c-means (GFCM)
+<hr>
+<p>For GFCM it is necessary to obtain the best parameter β, which controls the strength of the modification to the membership matrix. We selected the β  using the ***select_parameters.mc *** function. We used possible values of M between or β were from 0.1 to  and 0.9 with a step of 0.01 to select an appropriate value for these parameters. We evaluate the effect of the parameter value and to decide the optimal value with  the SI and the EI.</p>
+```{r GFCM parametrization, warning=FALSE, message=FALSE}
+future::plan(future::multisession(workers = 6))
+GFCMvalues=select_parameters.mc(algo = "GFCM", data = dataset,
+                                k = 13, m = seq(1.1,2,0.1), beta = seq(0.1,0.9,0.1),
+                                spconsist = FALSE, verbose = TRUE, init = "kpp",
+                                indices = c("Explained.inertia",
+                                            "Silhouette.index"))
+```
+<p>We can plot the impact of m and k on SI and EI</p>
+
+```{r GFCM plots parametrization , warning=FALSE, message=FALSE,fig.width=10, fig.height=10,fig.cap="Fig.3. Impact of β on silhouette index and Explained Inertia"}
+GFCNEI=ggplot(GFCMvalues) + 
+  geom_raster(aes(x = m, y = beta, fill = Explained.inertia)) + 
+  geom_text(aes(x = m, y = beta, label = round(Explained.inertia,2)), size = 2)+
+  scale_fill_viridis() +
+  coord_fixed(ratio=1)+
+  theme_bw()+
+  theme(text = element_text(size = 20, family = "serif"))
+GFCMSI=ggplot(GFCMvalues) + 
+  geom_raster(aes(x = m, y = beta, fill = Silhouette.index)) + 
+  geom_text(aes(x = m, y = beta, label = round(Silhouette.index,2)), size = 2)+
+  scale_fill_viridis() +
+  coord_fixed(ratio=1)+
+  theme_bw()+
+  theme(text = element_text(size = 20, family = "serif"))
+plot2=plot_grid(GFCMSI,GFCNEI,labels = c("A","B"),label_fontfamily = "serif", label_size = 20)
+plot2
+```
+<p>Considering the results above,a β=0.4 was chosen according to a SI =0.47 and EI=0.78 (Fig. S5) that correspond to a good fit. (SI=0.48 and EI=0.78). </p>
+
+```{r GFCM, warning=FALSE, message=FALSE}
+GFCM_result <- GCMeans(dataset, k = 13, m = 1.2, beta = 0.4, standardize = F, verbose = FALSE, seed = 789, tol = 0.001)
+```
+<p> We can now map the membership matrices and the most likely group for each observation. To do this, we use the mapClusters function from geocmeans. A threshold of 0.75 is suggested here. An observation will be labeled "undecided" if it has only values below this probability in a membership matrix.</p>
+```{r GFCM map plot, warning=FALSE,fig.width=10, fig.height=10, message=FALSE,fig.cap="Fig.4. Classification of ETP based in GFCM "}
+GFCM_result <- groups_matching(FCM_result, GFCM_result)
+#MAP GFCM MAP
+maps2 <- mapClusters(object = GFCM_result, undecided = 0.75)
+
+GFCM_map=maps2$ClusterPlot+
+  scale_fill_manual(values=c("#fdae66", "#e0b91c","#67b462","#b52f8c",
+                                      "#d8e98a","#57106e","#006837","#ef6f45",
+                                      "#c43c39","#bcdc3c","#a30f28","black",
+                                      "#296ca7" ,"#54323b"),name = "GFCM groups", labels = c("1", "2", "3","4","5",
+                                      "6","7","8","9","10","11","12","13","Unclassified"))+  geom_polygon(data = ETP_1, aes( x = long, y = lat, group = group), fill="gray", color="black")+
+  coord_sf(xlim = c(-117, -78),ylim = c(-6, 31))+theme_bw()+ labs(x = "Longitude",y = "Latitude",title="GFCM classification")+
+  theme(axis.title.x = element_text(size=16, family = "serif",color = "black"),
+        axis.text.x = element_text(size=14, family = "serif",color = "black"),
+        axis.title.y = element_text(size=16, family = "serif",color = "black"),
+        axis.text.y = element_text(size=14, family = "serif",color = "black"),
+        legend.text =element_text(size=20, family = "serif",color = "black"),
+        legend.title = element_text(size=20, family = "serif",color = "black"),
+        plot.title = element_text(size=24, family = "serif",color = "black",hjust=0.5))
+GFCM_map      
+```
+
+## 4.-Spatial  Generalized Fuzzy c-means (SGFCM)
+<hr>
+<p>For SGFCM, the parameter α must be calculated, which represents the weight of the spatial dimension in the calculation of the membership matrix and the cluster centers. ALos a windows geography space must be choose.   Here we used  the ***select_parameters.mc *** function to fnd the best parameters. We used possible values of w between 1 or 3, and  α were from 0.1 to 2 with a step of 0.01 to select an appropriate value for this parameters. WIn the case of SGFCM the α parameter and the geographic windows (w) were searched using the Spatial Consistency (SC) with values from 0.5 to 2 and 1to 3, respectively. The EC measures how much the clustering is spatially consistent, in this case, a classification is spatially inconsistent if the neighboring observations do not belong to the same group. This index ranges from 0 to 100, where a value of 0 indicates that all observations are identical to their neighbors and a value of 100 is observed when all observations are as different as their neighbors . </p>
+```{r SGFCM parametrization, warning=FALSE, message=FALSE}
+##Spatial fuzzy c-Means generalized####
+
+w1 <- matrix(1, nrow = 3, ncol = 3)
+w2 <- matrix(1, nrow = 5, ncol = 5)
+w3 <- matrix(1, nrow = 7, ncol = 7)
+
+#selecting the best spatial windows (W) and alfa parameter with Spatial consistence  index
+future::plan(future::multisession(workers = 6))
+SGFCMvalues <- select_parameters.mc(algo = "SGFCM", data = dataset, k = 13, m = 1.2,
+                                    beta = 0.4, alpha = seq(0.5,2,0.1),
+                                    window = list(w1,w2,w3),
+                                    spconsist = TRUE, nrep = 5, 
+                                    verbose = TRUE, chunk_size = 4,
+                                    seed = 456, init = "kpp",
+                                        indices = c("Explained.inertia",
+                                                 "Silhouette.index"))
+```
+<p>We can plot the impact of m and k on SI and EI</p>
+
+```{r SGFCM plots parametrization , warning=FALSE, message=FALSE,fig.width=10, fig.height=10,fig.cap="Fig.5. Impact of w and alpha on Spatial Concistency"}
+
+SGFCMSC=ggplot(SGFCMvalues) + 
+  geom_raster(aes(x = alpha, y = window, fill = spConsistency)) + 
+  geom_text(aes(x = alpha, y = window, label = round(spConsistency,2)), size = 2)+
+  scale_fill_viridis()+
+  coord_fixed(ratio=0.2)+
+  theme_bw()+
+  theme(text = element_text(size = 20, family = "serif"))
+SGFCMSC
+```
+<p>For SGFCM, a W=1 and α=1.7 was selected  because a value of SC=35 was observed  </p>
+
+```{r SGFCM, warning=FALSE, message=FALSE}
+SGFCM_result <- SGFCMeans(dataset, k = 13, m = 1.2, standardize = F,
+                          lag_method = "mean",
+                          window = w1, alpha = 0.5, beta = 0.4,
+                          seed = 789, tol = 0.001, verbose = FALSE, init = "kpp")
+```
+<p> We can now map the membership matrices and the most likely group for each observation. To do this, we use the mapClusters function from geocmeans. A threshold of 0.75 is suggested here. An observation will be labeled "undecided" if it has only values below this probability in a membership matrix.. </p>
+```{r SGFCM map plot, warning=FALSE, message=FALSE,fig.width=10, fig.height=10, message=FALSE,fig.cap="Fig.6. Classification of ETP based in SGFCM "}
+SGFCM_result <- groups_matching(FCM_result, SGFCM_result)
+####MAP SGFCM
+maps3 <- mapClusters(object = SGFCM_result, undecided = 0.75)
+SGFCM_map=maps3$ClusterPlot +  scale_fill_manual(values=c("#fdae66", "#2ba9bd","#67b462","#b52f8c","#d8e98a","#57106e","#006837","#ef6f45","#c43c39","#bcdc3c","#a30f28","#fde725","#296ca7" , "#54323b"),
+                                                 name = "SGFCM groups", labels = c("1", "2", "3","4","5","6","7","8","9","10","11","12","13","Unclassified"))+ 
+  geom_polygon(data = ETP_1, aes( x = long, y = lat, group = group), fill="#c1c1c1", color="black")+coord_sf(xlim = c(-117, -78), ylim = c(-6, 31))+
+  theme_bw()+ labs(x = "Longitude",y = "Latitude", title = "SGFCM groups")+
+  theme(axis.title.x = element_text(size=16, family = "serif",color = "black"),
+        axis.text.x = element_text(size=14, family = "serif",color = "black"),
+        axis.title.y = element_text(size=16, family = "serif",color = "black"),
+        axis.text.y = element_text(size=14, family = "serif",color = "black"),
+        legend.text =element_text(size=20, family = "serif",color = "black"),
+        legend.title = element_text(size=20, family = "serif",color = "black"),
+        plot.title = element_text(size=24, family = "serif",color = "black",hjust=0.5))
+
+SGFCM_map
+     
+```
+<p>We can now obtain the SI and EI quality indices of each FCM clustering method using the ***calcSilhouetteIdx*** and ***alcexplainedInertia ***, respectively. </p>
+```{r quality indices of each FCM , warning=FALSE, message=FALSE}
+
+cluster_results <- list(FCM_result, GFCM_result, SGFCM_result)
+indexFCM <- sapply(cluster_results, function(clust){
+  c(calcexplainedInertia(clust$Data, clust$Belongings),
+    calcSilhouetteIdx(clust$Data, clust$Belongings))
+})
+colnames(indexFCM) <- c("FCM", "GFCM", "SGFCM")
+rownames(indexFCM) <- c("explained inertia", "silhouette index")
+tableFCM=knitr::kable(indexFCM, digits = 3)
+ tableFCM    
+```

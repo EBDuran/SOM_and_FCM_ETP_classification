@@ -1,0 +1,273 @@
+---
+title: "SOM grid parametrization"
+author: "Erick Bolaños Duran <p>***Email:*** ebduran@pg.cibnor.mx<br>"
+date: "`r Sys.Date()`"
+output:
+    rmdformats::readthedown:
+    code_folding: show
+    highlight: kate
+    toc_depth: 2
+    number_sections: no
+    self_contained: true
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{=html}
+<style>
+  #content {
+    max-width: 1400px;
+  }
+  #sidebar h2 {
+    background-color: #008B8B;
+  }
+  
+  h1, h2 {
+    color: #008B8B;
+  }
+</style>
+```
+```{r setup, include=FALSE}
+
+#No MOVER!!!!!
+
+knitr::opts_chunk$set(warning=FALSE, message=FALSE, #error=FALSE,
+                      echo = TRUE,
+                      fig.path="figures_Rtemplate/",
+                      #dev='pdf', #Activar esta opción si se quiere obtener PDF
+                      fig.width = 8,
+                      fig.height = 4,
+                      fig.align="center")
+library(dplyr)
+library(ggplot2)
+library(plotly)
+library(knitr)
+library(summarytools)
+library(forcats)
+library(ggpubr)
+library(kableExtra)
+
+#Ubicación guia
+#E:\X\Cursos\Taller Bioinformatica
+```
+# Performing SOM with environmental data 
+<hr>
+## 1.-Estandarization of variables 
+<p> Open ***.tiff*** of environmental descriptors, then standardize the data using the function normalize. </p>
+```{r, warning=FALSE, message=FALSE,fig.align="center" }
+
+## ==============================================================
+  
+  # Title:05_SOM_grid_paramatrezitation
+  # Author details: Erick Bolaños Duran
+  # Contact details: ebduran@pg.cibnor.mx
+  # Script and data info: This script help to make different SOM map sizes 
+  # Copyright (c): 2023 Erick Bolaños Duran
+
+## ==============================================================
+
+#====================================Funtions===================================================================#
+### A funtion to Scale all variables to give them equal importance during the SOM training process. 
+normalize =function(x) {
+  min=raster::minValue(x)
+  max=raster::maxValue(x)
+  return((x - min) / (max - min))
+}
+###A funtion for color plots
+coolBlueHotRed= function(n,alpha=1)
+{rainbow(n, end = 4/6, alpha = alpha)[n:1]
+  
+}
+#===================================Dependencies============== ==============================================================
+
+library(raster)
+library(kohonen)
+library(terra)
+library(rassta)
+library(fpc)#to validate clusters
+library(aweSOM)#To calculate the quality indexes for SOM
+library(parallelPlot)#To compare the SOM´s quality indexes
+
+######Open non correlated data
+ft <- list.files(path = "d:/Estudiantes/Erick_Bolaños/01_Tesis/01_Paper_submition/02_Data/05_Non_correlated_data/" ,full.names = T,pattern = ".tif$",all.files=TRUE)
+rast_1=stack(ft)
+#change names of layer
+layer.names=c("MaxMMSST","minMMSST","OMKD490","OMpH","OM_SCV","OM_SSS","OSD_pH")
+names(rast_1)=layer.names
+###Scale the env variables using the previous function
+rast_1=normalize(rast_1)
+####They are already normalized, now we are going to open the raster with the terra package, for this we have to change the object with the rast function
+env.data=terra::rast(rast_1)
+```
+## 2.-SOM grid test using diferent topologies 
+<hr>
+<p> **The map size is an important parameter in SOM**, because the output map will affect the final visualization. While a few numbers of nodes produce the over-smoothing results, too many nodes give an over-fitting model. A series of test using different map arrangement ranging from 4x3 to 9x9 were performed to select the map size and array of the neurons in SOM. </p>
+
+<p> In all test a hexagonal grid was used, each test a ***K.max*** from 4 to 20k were selected,  1000 learning rate were selected to train the SOM with the input data (environmental variables).</p>
+
+```{r, warning=FALSE, message=FALSE, fig.align="center", fig.width=4, fig.height=2, fig.cap="Fig.1 Mapa del area de estudio"}
+  ###4x3Grid#####
+setwd("D:/Estudiantes/Erick_Bolaños/01_Tesis/01_Seascape_characterization/10_SOM_bien/01_Suppementary_results/01_SOM_grid_test/")
+set.seed(963) 
+tsom4x3<-som_gap(env.data, xdim =4, ydim=3,rlen = 1000, mode = "online", K.max =10 ,B = 1000, topo="hexagonal",
+                 neighbourhood.fct = "gaussian", method = "globalSEmax") 
+###4x4Grid####
+set.seed(963)  
+tsom4x4<-som_gap(env.data, xdim =4, ydim=4,rlen = 1000, mode = "online", K.max =15 ,B = 1000, topo="hexagonal",
+                 neighbourhood.fct = "gaussian", method = "globalSEmax") 
+##########4x5Grid####
+set.seed(963)
+tsom4x5<-som_gap(env.data, xdim =4, ydim=5,rlen = 1000, mode = "online", K.max =19 ,B = 1000, topo="hexagonal",
+                 neighbourhood.fct = "gaussian", method = "globalSEmax") 
+###Test of quality 
+
+########## 4x6Grid #################
+set.seed(963) 
+tsom4x6<-som_gap(env.data, xdim =4, ydim=6,rlen = 1000, mode = "online", K.max =23 ,B = 1000, topo="hexagonal",
+                 neighbourhood.fct = "gaussian", method = "globalSEmax") 
+#####4x7#####
+set.seed(963)  
+tsom4x7<-som_gap(env.data, xdim =4, ydim=7,rlen = 1000, mode = "online", K.max =25 ,B = 1000, topo="hexagonal",
+                 neighbourhood.fct = "gaussian", method = "globalSEmax") 
+########5x3#####
+set.seed(963) 
+tsom5x3<-som_gap(env.data, xdim =5, ydim=3,rlen = 1000, mode = "online", K.max =14 ,B = 1000, topo="hexagonal",
+                 neighbourhood.fct = "gaussian", method = "globalSEmax") 
+########5x4#####
+set.seed(963) 
+tsom5x4<-som_gap(env.data, xdim =5, ydim=4,rlen = 1000, mode = "online", K.max =19 ,B = 1000, topo="hexagonal",
+                 neighbourhood.fct = "gaussian", method = "globalSEmax") 
+##############5x5#####
+set.seed(963) 
+tsom5x5<-som_gap(env.data, xdim =5, ydim=5,rlen = 1000, mode = "online", K.max =24 ,B = 1000, topo="hexagonal",
+                 neighbourhood.fct = "gaussian", method = "globalSEmax") 
+#############5x6#####
+set.seed(963) 
+tsom5x6<-som_gap(env.data, xdim =5, ydim=6,rlen = 1000, mode = "online", K.max =25 ,B = 1000, topo="hexagonal",
+                 neighbourhood.fct = "gaussian", method = "globalSEmax") 
+#############5x7#####
+set.seed(963) 
+tsom5x7<-som_gap(env.data, xdim =5, ydim=7,rlen = 1000, mode = "online", K.max =24 ,B = 1000, topo="hexagonal",
+                 neighbourhood.fct = "gaussian", method = "globalSEmax") 
+#############6x6#####
+set.seed(963)  
+tsom6x6<-som_gap(env.data, xdim =6, ydim=6,rlen = 1000, mode = "online", K.max =25 ,B = 1000, topo="hexagonal",
+                 neighbourhood.fct = "gaussian", method = "globalSEmax") 
+
+#############6x7#####
+set.seed(963) 
+tsom6x7<-som_gap(env.data, xdim =6, ydim=7,rlen = 1000, mode = "online", K.max =25 ,B = 1000, topo="hexagonal",
+                 neighbourhood.fct = "gaussian", method = "globalSEmax") 
+
+#############7x7#####
+set.seed(963)  
+tsom7x7<-som_gap(env.data, xdim =7, ydim=7,rlen = 1000, mode = "online", K.max =25 ,B = 1000, topo="hexagonal",
+                 neighbourhood.fct = "gaussian", method = "globalSEmax") 
+
+###Test of 7x8
+set.seed(963) 
+tsom7x8<-som_gap(env.data, xdim =7, ydim=8,rlen = 1000, mode = "online", K.max =25 ,B = 1000, topo="hexagonal",
+                 neighbourhood.fct = "gaussian", method = "globalSEmax") 
+
+###8x8
+set.seed(963)
+tsom8x8<-som_gap(env.data, xdim =8, ydim=8,rlen = 1000, mode = "online", K.max =25 ,B = 1000, topo="hexagonal",
+                 neighbourhood.fct = "gaussian", method = "globalSEmax") 
+
+##8x9
+set.seed(963) 
+tsom8x9<-som_gap(env.data, xdim =8, ydim=9,rlen = 1000, mode = "online", K.max =25 ,B = 1000, topo="hexagonal",
+                 neighbourhood.fct = "gaussian", method = "globalSEmax") 
+##9x9
+set.seed(963) ##esta se pone para plantar una semilla y que no varien 
+tsom9x9<-som_gap(env.data, xdim =9, ydim=9,rlen = 1000, mode = "online", K.max =25 ,B = 1000, topo="hexagonal",
+                 neighbourhood.fct = "gaussian", method = "globalSEmax") 
+
+```
+
+## 3.-Comparative among quality indixes in SOM
+<hr>
+<p> The Topography Error (TE) and the percent of variance explained (PVE) were calculated to select the best map size parameter, all of the quality indexes were obtained using the R package **aweSOM**  using the *somQuality* function. The TE measures how well the topological patterns of the input data are preserved in the output layer of the SOM. It is calculated as the proportion of observations for which the BMU is not a neighbor of the second BMU. TE ranges from 0 to 1, where 0 means perfect topology preservation in the map and 1 means that a topology error characterizes each data point.</p>
+<p> The PVE equal to other ordination and cluster methods quantifies how well the SOM map nodes represents the input data. PVE is calculated from quantization error, scaled 0 to 100% using the total variance of the data set. PVE value is from 0 to 100%, with 100% percent being ideal.</p>
+
+```{r, warning=FALSE, message=FALSE, fig.align="center", fig.width=4, fig.height=2, fig.cap="Fig.1. Comparing grid size and quality indexes of grid size of SOM"}
+
+###We have to calclulate the TE and PVE using the funtion somQuality funtion from aweSOM
+data4x3=as.data.frame(tsom4x3$SOM$data)
+somQ4x3=somQuality(tsom4x3$SOM,data4x3)
+data4x4=as.data.frame(tsom4x4$SOM$data)
+somQ4x4=somQuality(tsom4x4$SOM,data4x4)
+data4x5=as.data.frame(tsom4x5$SOM$data)
+somQ4x5=somQuality(tsom4x5$SOM,data4x5)
+data4x6=as.data.frame(tsom4x6$SOM$data)
+somQ4x6=somQuality(tsom4x6$SOM,data4x6)
+data4x7=as.data.frame(tsom4x7$SOM$data)
+somQ4x7=somQuality(tsom4x7$SOM,data4x7)
+data5x3=as.data.frame(tsom5x3$SOM$data)
+somQ5x3=somQuality(tsom5x3$SOM,data5x3)
+data5x4=as.data.frame(tsom5x4$SOM$data)
+somQ5x4=somQuality(tsom5x4$SOM,data5x4)
+data5x5=as.data.frame(tsom5x5$SOM$data)
+somQ5x5=somQuality(tsom5x5$SOM,data5x5)
+data5x6=as.data.frame(tsom5x6$SOM$data)
+somQ5x6=somQuality(tsom5x6$SOM,data5x6)
+data5x7=as.data.frame(tsom5x7$SOM$data)
+somQ5x7=somQuality(tsom5x7$SOM,data5x7)
+data6x6=as.data.frame(tsom6x6$SOM$data)
+somQ6x6=somQuality(tsom6x6$SOM,data6x6)
+data6x7=as.data.frame(tsom6x7$SOM$data)
+somQ6x7=somQuality(tsom6x7$SOM,data6x7)
+data7x7=as.data.frame(tsom7x7$SOM$data)
+somQ7x7=somQuality(tsom7x7$SOM,data7x7)
+data7x8=as.data.frame(tsom7x8$SOM$data)
+somQ7x8=somQuality(tsom7x8$SOM,data7x8)
+data8x8=as.data.frame(tsom8x8$SOM$data)
+somQ8x8=somQuality(tsom8x8$SOM,data8x8)
+data8x9=as.data.frame(tsom8x9$SOM$data)
+somQ8x9=somQuality(tsom8x9$SOM,data8x9)
+data9x9=as.data.frame(tsom9x9$SOM$data)
+somQ9x9=somQuality(tsom9x9$SOM,data9x9)
+```
+<p> We can create a data frame with all quality indexes of SOM in this case we will compare just TE and and PVE .</p>
+```{r, warning=FALSE, message=FALSE,}
+
+x_SOM=c(4,4,4,4,4,5,5,5,5,5,6,6,7,7,8,8,9)
+y_SOM=c(3,4,5,6,7,3,4,5,6,7,6,7,7,8,8,9,9)  
+qe=c(somQ4x3$err.quant,somQ4x4$err.quant,somQ4x5$err.quant,somQ4x6$err.quant,somQ4x7$err.quant,
+     somQ5x3$err.quant,somQ5x4$err.quant,somQ5x5$err.quant,
+     somQ5x6$err.quant,somQ5x7$err.quant,somQ6x6$err.quant, somQ6x7$err.quant, somQ7x7$err.quant,somQ7x8$err.quant,
+     somQ8x8$err.quant,somQ8x9$err.quant,somQ9x9$err.quant)
+te=c(somQ4x3$err.topo,somQ4x4$err.topo,somQ4x5$err.topo,somQ4x6$err.topo,somQ4x7$err.topo,
+     somQ5x3$err.topo,somQ5x4$err.topo,somQ5x5$err.topo,somQ5x6$err.topo,
+     somQ5x7$err.topo,somQ6x6$err.topo, somQ6x7$err.topo, somQ7x7$err.topo,
+     somQ7x8$err.topo, somQ8x8$err.topo,somQ8x9$err.topo,somQ9x9$err.topo)
+
+peva=c(somQ4x3$err.varratio,somQ4x4$err.varratio,somQ4x5$err.varratio,somQ4x6$err.varratio,
+       somQ4x7$err.varratio,somQ5x3$err.varratio,somQ5x4$err.varratio,somQ5x5$err.varratio,
+       somQ5x6$err.varratio,somQ5x7$err.varratio,somQ6x6$err.varratio, somQ6x7$err.varratio,
+       somQ7x7$err.varratio,somQ7x8$err.varratio, somQ8x8$err.varratio,somQ8x9$err.varratio,
+       somQ9x9$err.varratio)
+table_SOMquality=data.frame(x=x_SOM,y=y_SOM, Topographic_error=te,Percentage_of_explained_variance=peva)
+table_SOMquality
+
+table_SOMquality %>%
+  head() %>%
+  kable(digits = 3, caption = 'SOM Grid selection using TE and EVP') %>%
+  kable_styling(full_width = FALSE, position = 'left') %>%
+  row_spec(0,
+           bold = T,
+           color = 'white',
+           background = 'royalblue')
+
+
+
+```
+<p> We can create an 
+interactive parallel plot .</p>
+```{r, warning=FALSE, message=FALSE, fig.align="center", fig.width=4, fig.height=2, fig.cap="Fig.1. Comparing grid size and quality indexes of SOM"}
+
+parallelPlot(table_SOMquality, refColumnDim = "Percentage_of_explained_variance",rotateTitle = T, continuousCS = "Inferno", width = 500,height =500 )
+
+
+```
