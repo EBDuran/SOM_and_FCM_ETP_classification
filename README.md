@@ -12,6 +12,8 @@ are more likely to be effective in seascapes with similar environmental characte
   </li>
 <P>The methods and workflow used in this study for ETP classification are shown below (Fig. 1).</p>
 
+![figure01_methods_20_08_2023](https://github.com/EBDuran/SOM_and_FCM_ETP_classification/assets/113937473/3ff85ed5-b6d4-402a-975a-26a9fe68e0f3)
+
 <p> The firts step is proscesing the six
 physicochemical variables: Sea Surface Temperature (SST), salinity, Chlorophyll concentration (Cha), pH, diffuse attenuation coefficient at 490 nm (KD490) as a proxy for turbidity, and sea current velocity (SCV). The description of the spatial and temporal resolution of each variable and the repository
 that was retrieved is in Table 1. In the script 01_Daily_variables.Rmd the overall mean (OM), overall standard deviation (OSD), the maximum monthly mean (MMMSST) and minimum monthly mean (mMMSST) of SST were calculated.  In 02_Monthly_variables.Rmd script the same descriptors were calculated for the rest of variables. The rasters </P>
