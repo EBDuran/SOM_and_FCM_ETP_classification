@@ -1,4 +1,4 @@
-# Performing a Eastern Tropical Pacific  physicochemical classification usign two methods: Self-Organization Maps and Fuzzy C-means approaches.  
+# Performing a Eastern Tropical Pacific  physicochemical classification usign two methods: Self-Organization Maps and Fuzzy c-means approaches.  
 <p>The Eastern Tropical Pacific (ETP) is one of the most productive regions in the world, with biological richness and regional endemism. Classifying and describing the seascape is essential to develop policies and protect marine ecosystems. Managers’ interventions
 are more likely to be effective in seascapes with similar environmental characteristics. In this study, we compared four clustering approaches.  </p>
 
