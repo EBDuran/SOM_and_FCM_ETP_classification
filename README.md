@@ -21,6 +21,6 @@ that was retrieved is in Table 1. In the script 01_Daily_variables.Rmd the overa
 
 ## 2.-Clustering methods 
 
-### 2.2.-SOM
+### 2.2.-SOM-PAM classification
 
-<p> **The map size is an important parameter in SOM**, because the output map will affect the final visualization. While a few numbers of nodes produce the over-smoothing results, too many nodes give an over-fitting model. A series of test using different map arrangement ranging from 4x3 to 9x9 were performed to select the map size and array of the neurons in SOM. </p>
+<p> **The map size is an important parameter in SOM**, because the output map will affect the final visualization. While a few numbers of nodes produce the over-smoothing results, too many nodes give an over-fitting model. A series of test using different map arrangement ranging from 4x3 to 9x9 were performed to select the map size and array of the neurons in SOM, the script for the all test are in 05_. </p>
