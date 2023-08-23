@@ -10,7 +10,7 @@ are more likely to be effective in seascapes with similar environmental characte
   		<li>2.3.-Generalized Fuzzy c-means (SGFCM) </li>
     </ul>
   </li>
-<P>The methods and workflow used in this study for ETP classification are shown below (Fig. 1).</p>
+<P>The methods and workflow used in this study for ETP classification are shown below.</p>
 
 ![figure01_methods_20_08_2023](https://github.com/EBDuran/SOM_and_FCM_ETP_classification/assets/113937473/3ff85ed5-b6d4-402a-975a-26a9fe68e0f3)
 ## 1.-Data processing
@@ -23,4 +23,19 @@ that was retrieved is in Table 1. In the script **01_Daily_variables.Rmd** the o
 
 ### 2.2.-SOM-PAM classification
 
-<p> **The map size is an important parameter in SOM**, because the output map will affect the final visualization. While a few numbers of nodes produce the over-smoothing results, too many nodes give an over-fitting model. A series of test using different map arrangement ranging from 4x3 to 9x9 were performed to select the map size and array of the neurons in SOM, the script for the all test are in 05_SOM_grid_selection.Rmd </p>
+<li> a) and b) Data reduction and  SOM map size selection </li>
+
+<p> *The map size is an important parameter in SOM*, because the output map will affect the final visualization. While a few numbers of nodes produce the over-smoothing results, too many nodes give an over-fitting model. A series of test using different map arrangement ranging from 4x3 to 9x9 were performed to select the map size and array of the neurons in SOM. </p>
+<p> The Topography Error (TE) and the percent of variance explained (PVE) were calculated to select the best map size parameter. The TE measures how well the topological patterns of the input data are preserved in the output layer of the SOM. It is calculated as the proportion of observations for which the BMU is not a neighbor of the second BMU. TE ranges from 0 to 1, where 0 means perfect topology preservation in the map and 1 means that a topology error characterizes each data point.</p>
+<p> The script for the all test and parameters are in 05_SOM_grid_selection.Rmd </p>
+
+<li> c) SOM partition using PAM </li>
+
+<p>After selection of the best grid size in the last step, the data reduction using SOM was perfomed. In a second step
+we found the best partition of SOM map using the
+weight vectors of nodes using Partitioning Around Medoids
+(PAM) algorithm, both proceses are in 06_SOM_PAM.Rmd </p>
+
+<li> d) Selection of optimal cluster using GAP </li>
+<p>Finally we used GAP statistic to find the optimal number
+of  cluster (K) in PAM of the SOM. The selection of K is in 06_SOM_PAM.Rmd .</p>
