@@ -40,3 +40,6 @@ After selection of the best grid size in the last step, the data reduction using
 
 Finally we used GAP statistic to find the optimal number
 of  cluster (K) in PAM of the SOM. The selection of K is in **06_SOM_PAM.Rmd**.
+
+# 3.-Selecting the best classification
+Finally, the best environmental classification of the ETP seascapes was selected based on IS and IE values. The indices for the SOM-PAM classification were calculated using the PAM groups. The final step of the pipeline are in the script **08_Clustering_comparation.Rmd**.
