@@ -1,0 +1,1160 @@
+---
+title: "01_Daily_data"
+author: "Erick Bolaños Duran"
+date: "`r Sys.Date()`"
+output:
+    rmdformats::readthedown:
+    code_folding: show
+    highlight: kate
+    toc_depth: 2
+    self_contained: true
+    number_sections: true
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{=html}
+<style>
+  #content {
+    max-width: 1400px;
+  }
+  #sidebar h2 {
+    background-color: ##8B0020;
+  }
+  
+  h1, h2 {
+    color: #8B0020;
+  }
+</style>
+```
+```{r setup, include=FALSE}
+
+
+knitr::opts_chunk$set(warning=FALSE, message=FALSE,
+                      echo = TRUE,
+                      fig.path="figures_Rtemplate/",
+                      fig.width = 10,
+                      fig.height = 10,
+                      fig.align="center")
+```
+
+```{r errores_markdown, eval=FALSE, echo=FALSE}
+```
+
+<hr>
+# 1. Sea surface Temperature (SST)of ETP from 1998 to 2020 (Daily records)
+<hr>
+<p>Download Sea Surface Temperature (SST) data from the ERDDAP repositories into NOAA Coral Reef Watch.</p>
+<hr>
+<p>ETP ranges from Bahía Magdalena in the GC to northern Peru, and also includes the Revillagigedo and Galápagos archipelagos, and isolated islands such as Clipperton, Cocos and Malpeo. Since only ***2GB*** can be downloaded, it is necessary to download the information for every 6 months.</p>
+```{r libraries, warning=FALSE, message=FALSE}
+####Librerías a utilizar#####
+library(rerddap)
+library(rerddapXtracto)
+library(lubridate)
+library(ncdf4)
+library(udunits2)
+library(httr)
+library(sp)
+library(rgdal)
+library(spatialEco)
+library(raster)
+library(dplyr)
+library(tidyr)
+library(lubridate)
+library(ggplot2)
+library(data.table)
+library(rgeos)
+```
+## 1.1. Download daily SST records 
+<p> Daily records of SST will be downloaded of ETP from 1998 to 2020 using the biogeographical delimitation provided by Spalding et al., 2007. In this case, data will be belong to *Warm Temperate Northeast Pacific* and *Eastern Tropical  Pacific* provinces.</p>
+```
+# Download data from January 1s to May 31th,  and records from June 1st to December 31t, of each year (1998-2020)
+junk202<- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2020-06-01T12:00:00Z):1:(2020-12-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2020-DIC", overwrite=TRUE))
+junk201 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2020-01-01T12:00:00Z):1:(2020-05-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2020-May.nc", overwrite=TRUE))
+junk192 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2019-06-01T12:00:00Z):1:(2019-12-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2109_DIC.nc", overwrite=TRUE))
+junk191 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2019-01-01T12:00:00Z):1:(2019-05-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2019_May.nc", overwrite=TRUE))
+junk182 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2018-06-01T12:00:00Z):1:(2018-12-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2018_DIC.nc", overwrite=TRUE))
+junk181 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2018-01-01T12:00:00Z):1:(2018-05-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2018_May.nc", overwrite=TRUE))
+junk172 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2017-06-01T12:00:00Z):1:(2017-12-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2017_DIC.nc", overwrite=TRUE))
+
+junk171 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2017-01-01T12:00:00Z):1:(2017-05-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2017_May.nc", overwrite=TRUE))
+
+junk162 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2016-06-01T12:00:00Z):1:(2016-12-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2016_DIC.nc", overwrite=TRUE))
+junk161 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2016-01-01T12:00:00Z):1:(2016-05-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2016_May.nc", overwrite=TRUE))
+junk152 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2015-06-01T12:00:00Z):1:(2015-12-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2015_DIC.nc", overwrite=TRUE))
+junk151 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2015-01-01T12:00:00Z):1:(2015-05-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2015_May.nc", overwrite=TRUE))
+junk142 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2014-06-01T12:00:00Z):1:(2014-12-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2014_DIC.nc", overwrite=TRUE))
+junk141 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2014-01-01T12:00:00Z):1:(2014-05-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2014_May.nc", overwrite=TRUE))
+junk132 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2013-06-01T12:00:00Z):1:(2013-12-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2013_DIC.nc", overwrite=TRUE))
+junk131 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2013-01-01T12:00:00Z):1:(2013-05-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2013_May.nc", overwrite=TRUE))
+junk122 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2012-06-01T12:00:00Z):1:(2012-12-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2012_DIC.nc", overwrite=TRUE))
+junk121 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2012-01-01T12:00:00Z):1:(2012-05-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2012_May.nc", overwrite=TRUE))
+junk112 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2011-06-01T12:00:00Z):1:(2011-12-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2011_DIC.nc", overwrite=TRUE))
+junk111 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2011-01-01T12:00:00Z):1:(2011-05-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2011_May.nc", overwrite=TRUE))
+junk102 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2010-06-01T12:00:00Z):1:(2010-12-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2010_DIC.nc", overwrite=TRUE))
+junk101 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2010-01-01T12:00:00Z):1:(2010-05-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2010_May.nc", overwrite=TRUE))
+junk092 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2009-06-01T12:00:00Z):1:(2009-12-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2009_DIC.nc", overwrite=TRUE))
+junk091 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2009-01-01T12:00:00Z):1:(2009-05-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2009_May.nc", overwrite=TRUE))
+junk082 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2008-06-01T12:00:00Z):1:(2008-12-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2008_DIC.nc", overwrite=TRUE))
+junk081 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2008-01-01T12:00:00Z):1:(2008-05-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2008_May.nc", overwrite=TRUE))
+junk072 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2007-06-01T12:00:00Z):1:(2007-12-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2007_DIC.nc", overwrite=TRUE))
+junk071 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2007-01-01T12:00:00Z):1:(2007-05-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2007_May.nc", overwrite=TRUE))
+junk062 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2006-06-01T12:00:00Z):1:(2006-12-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2006_DIC.nc", overwrite=TRUE))
+junk061 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2006-01-01T12:00:00Z):1:(2006-05-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2006_May.nc", overwrite=TRUE))
+junk052 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2005-06-01T12:00:00Z):1:(2005-12-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2005_DIC.nc", overwrite=TRUE))
+junk051 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2005-01-01T12:00:00Z):1:(2005-05-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2005_May.nc", overwrite=TRUE))
+junk042 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2004-06-01T12:00:00Z):1:(2004-12-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2004_DIC.nc", overwrite=TRUE))
+junk041 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2004-01-01T12:00:00Z):1:(2004-05-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2004_May.nc", overwrite=TRUE))
+junk032 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2003-06-01T12:00:00Z):1:(2003-12-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2003_DIC.nc", overwrite=TRUE))
+junk031 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2003-01-01T12:00:00Z):1:(2003-05-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2003_May.nc", overwrite=TRUE))
+junk022 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2002-06-01T12:00:00Z):1:(2002-12-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2002_DIC.nc", overwrite=TRUE))
+junk021 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2002-01-01T12:00:00Z):1:(2002-05-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2002_May.nc", overwrite=TRUE))
+junk012 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2001-06-01T12:00:00Z):1:(2001-12-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2001_DIC.nc", overwrite=TRUE))
+junk011 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2001-01-01T12:00:00Z):1:(2001-05-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2001_May.nc", overwrite=TRUE))
+junk002 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2000-06-01T12:00:00Z):1:(2000-12-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2000_DIC.nc", overwrite=TRUE))
+junk001 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(2000-01-01T12:00:00Z):1:(2000-05-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_2000_May.nc", overwrite=TRUE))
+junk992 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(1999-06-01T12:00:00Z):1:(1999-12-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_1999_DIC.nc", overwrite=TRUE))
+junk991 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(1999-01-01T12:00:00Z):1:(1999-05-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_1999_May.nc", overwrite=TRUE))
+junk982 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(1998-06-01T12:00:00Z):1:(1998-12-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_1998_DIC.nc", overwrite=TRUE))
+junk981 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_SST%5B(1998-01-01T12:00:00Z):1:(1998-05-31T12:00:00Z)%5D%5B(35.025):1:(-6.975)%5D%5B(-119.975):1:(-76.975)%5D', write_disk("SST_coral_temp_1998_May.nc", overwrite=TRUE))
+
+```
+<p>The data was saved as raster layers with netCDF (**.nc**) format.</p>
+
+## 1.2. Stack the downloaded raster layers
+<p> To have a complete year, all layers of each .nc file must be stack in a single raster object. To do this, the daily records layers are first joined in a single raster object for each half of the year using RasterBrick. Later, having the two objects, they will be joined with RasterStacks to have a single raster object.</p>
+
+```{r Stack the downloaded raster layers, warning=FALSE, message=FALSE}
+setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/01_Daily_data/01_SST_data/01_Daily_data_downloaded")
+#############################2020###############################################3
+SST20201=brick( 'SST_coral_temp_2020-May.nc') # brick function is used to join the records because it takes less time than Stack
+SST20202=brick('SST_coral_temp_2020_DIC.nc')                
+SST2020=stack(SST20201,SST20202) #To have all the information of the year, Stack is used because birck does not allow joining two raster objects
+#########################2019############
+SST20191=brick( 'SST_coral_temp_2019_May.nc') 
+SST20192=brick('SST_coral_temp_2019_DIC.nc')                
+SST2019=stack(SST20191,SST20192)
+###################2018###############
+SST20181=brick( 'SST_coral_temp_2018_May.nc') 
+SST20182=brick('SST_coral_temp_2018_DIC.nc')                
+SST2018=stack(SST20181,SST20182)
+########2017######
+SST20171=brick( 'SST_coral_temp_2017_May.nc') 
+SST20172=brick('SST_coral_temp_2017_DIC.nc')                
+SST2017=stack(SST20171,SST20172)
+########2016########
+SST20161=brick( 'SST_coral_temp_2016_May.nc') 
+SST20162=brick('SST_coral_temp_2016_DIC.nc')                
+SST2016=stack(SST20161,SST20162)
+##########2015#########
+SST20151=brick('SST_coral_temp_2015_May.nc') 
+SST20152=brick('SST_coral_temp_2015_DIC.nc')                
+SST2015=stack(SST20151,SST20152)
+##########2014#########
+SST20141=brick('SST_coral_temp_2014_May.nc') 
+SST20142=brick('SST_coral_temp_2014_DIC.nc')                
+SST2014=stack(SST20141,SST20142)
+##########2013#########
+SST20131=brick('SST_coral_temp_2013_May.nc') 
+SST20132=brick('SST_coral_temp_2013_DIC.nc')                
+SST2013=stack(SST20131,SST20132)
+##########2012#########
+SST20121=brick('SST_coral_temp_2012_May.nc') 
+SST20122=brick('SST_coral_temp_2012_DIC.nc')                
+SST2012=stack(SST20121,SST20122)
+
+##########2011#########
+SST20111=brick('SST_coral_temp_2011_May.nc') 
+SST20112=brick('SST_coral_temp_2011_DIC.nc')                
+SST2011=stack(SST20111,SST20112)
+##########2010#########
+SST20101=brick('SST_coral_temp_2010_May.nc') 
+SST20102=brick('SST_coral_temp_2010_DIC.nc')                
+SST2010=stack(SST20101,SST20102)
+##########2009#########
+SST20091=brick('SST_coral_temp_2009_May.nc') 
+SST20092=brick('SST_coral_temp_2009_DIC.nc')                
+SST2009=stack(SST20091,SST20092)
+##########2008#########
+SST20081=brick('SST_coral_temp_2008_May.nc') 
+SST20082=brick('SST_coral_temp_2008_DIC.nc')                
+SST2008=stack(SST20081,SST20082)
+##########2007#########
+SST20071=brick('SST_coral_temp_2007_May.nc') 
+SST20072=brick('SST_coral_temp_2007_DIC.nc')                
+SST2007=stack(SST20071,SST20072)
+##########2006#########
+SST20061=brick('SST_coral_temp_2006_May.nc') 
+SST20062=brick('SST_coral_temp_2006_DIC.nc')                
+SST2006=stack(SST20061,SST20062)
+##########2005#########
+SST20051=brick('SST_coral_temp_2005_May.nc') 
+SST20052=brick('SST_coral_temp_2005_DIC.nc')                
+SST2005=stack(SST20051,SST20052)
+##########2004#########
+SST20041=brick('SST_coral_temp_2004_May.nc') 
+SST20042=brick('SST_coral_temp_2004_DIC.nc')                
+SST2004=stack(SST20041,SST20042)
+#######2003######
+SST20031=brick('SST_coral_temp_2003_May.nc') 
+SST20032=brick('SST_coral_temp_2003_DIC.nc')                
+SST2003=stack(SST20031,SST20032)
+#######2002######
+SST20021=brick('SST_coral_temp_2002_May.nc') 
+SST20022=brick('SST_coral_temp_2002_DIC.nc')                
+SST2002=stack(SST20021,SST20022)
+#######2001######
+SST20011=brick('SST_coral_temp_2001_May.nc') 
+SST20012=brick('SST_coral_temp_2001_DIC.nc')                
+SST2001=stack(SST20011,SST20012)
+#######2000######
+SST20001=brick('SST_coral_temp_2000_May.nc') 
+SST20002=brick('SST_coral_temp_2000_DIC.nc')                
+SST2000=stack(SST20001,SST20002)
+SST2000
+#######2000######
+SST20001=brick('SST_coral_temp_2000_May.nc') 
+SST20002=brick('SST_coral_temp_2000_DIC.nc')                
+SST2000=stack(SST20001,SST20002)
+#######1999######
+SST19991=brick('SST_coral_temp_1999_May.nc') 
+SST19992=brick('SST_coral_temp_1999_DIC.nc')                
+SST1999=stack(SST19991,SST19992)
+#######1998######
+SST19981=brick('SST_coral_temp_1998_May.nc') 
+SST19982=brick('SST_coral_temp_1998_DIC.nc')                
+SST1998=stack(SST19981,SST19982)
+```
+# 2. Monthly SST Statistical Descriptors
+<hr>
+## 2.1. Montly mean and standard desviation (SD) of SST
+
+<p>Since they are daily data, it is necessary to index the months, so that the daily records are grouped in their corresponding month.The monthly mean will be calculated using the indexed months as a reference, for this the loop will allow grouping all daily record of  SST in each month and then it will calculate the monthly mean and SD.</p>
+```{r Montly mean and standard desviation (SD) of SST, warning=FALSE, message=FALSE}
+setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/01_Daily_data/01_SST_data/02_SST_mean_and_OSD")
+####2020####
+m_index2020= c()
+for (y in 2020) {
+  # Si es año bisieto
+  if (y%%4==0) { m_index2020= c(m_index2020, rep(1:12 , times = c(31,29,31,30,31,30,31,31,30,31,30,31))) }
+  # Si no es año bisiesto
+  else { m_index2020 = c(m_index2020, rep(1:12 , times = c(31,28,31,30,31,30,31,31,30,31,30,31))) }
+}
+length(m_index2020)
+table(m_index2020) 
+
+
+SSTmean2020=stack()
+SSTsd2020=stack()
+
+for (m in 1:12) { # for every month
+  
+  print(m) # print current month to track the progress of the loop...
+  
+  Mean2020= mean(SST2020[[which(m_index2020==m)]], na.rm=T) # calculate the mean SST for all the records of the current month
+  Sd2020 = calc(SST2020[[which(m_index2020==m)]], sd, na.rm=T) # calculate the st. dev. of SST for all the records of the current month
+  
+  # add the monthly records to the stacks
+  print(Mean2020)
+  print(Sd2020)
+  
+  SSTmean2020 = stack(SSTmean2020,Mean2020)
+  SSTsd2020 = stack(SSTsd2020,Sd2020)
+  
+}
+writeRaster(SSTmean2020,"SSTPOT_2020Mmean.nc", overwrite=TRUE)
+writeRaster(SSTsd2020,"SSTPOT_2020Msd.nc", overwrite=TRUE)
+
+#######2019#######
+m_index2019= c()
+for (y in 2019) {
+  # Si es año bisieto
+  if (y%%4==0) { m_index2019= c(m_index2019, rep(1:12 , times = c(31,29,31,30,31,30,31,31,30,31,30,31))) }
+  # Si no es año bisiesto
+  else { m_index2019 = c(m_index2019, rep(1:12 , times = c(31,28,31,30,31,30,31,31,30,31,30,31))) }
+}
+length(m_index2019)
+table(m_index2019) 
+SSTmean2019=stack()
+SSTsd2019=stack()
+for (m in 1:12) { # for every month
+  
+  print(m) # print current month to track the progress of the loop...
+  
+  Mean2019= mean(SST2019[[which(m_index2019==m)]], na.rm=T) # calculate the mean SST for all the records of the current month
+  Sd2019 = calc(SST2019[[which(m_index2019==m)]], sd, na.rm=T) # calculate the st. dev. of SST for all the records of the current month
+  
+  # add the monthly records to the stacks
+  print(Mean2019)
+  print(Sd2019)
+  
+  SSTmean2019 = stack(SSTmean2019,Mean2019, overwrite=TRUE)
+  SSTsd2019 = stack(SSTsd2019,Sd2019, overwrite=TRUE)
+  
+}
+writeRaster(SSTmean2019,"SSTPOT_2019Mmean.nc", overwrite=TRUE)
+writeRaster(SSTsd2019,"SSTPOT_2019Msd.nc", overwrite=TRUE)
+
+#######2018#######
+m_index2018= c()
+for (y in 2018) {
+  # Si es año bisieto
+  if (y%%4==0) { m_index2018= c(m_index2018, rep(1:12 , times = c(31,29,31,30,31,30,31,31,30,31,30,31))) }
+  # Si no es año bisiesto
+  else { m_index2018 = c(m_index2018, rep(1:12 , times = c(31,28,31,30,31,30,31,31,30,31,30,31))) }
+}
+length(m_index2018)
+table(m_index2018) 
+SSTmean2018=stack()
+SSTsd2018=stack()
+
+for (m in 1:12) { # for every month
+  
+  print(m) # print current month to track the progress of the loop...
+  
+  Mean2018= mean(SST2018[[which(m_index2018==m)]], na.rm=T) # calculate the mean SST for all the records of the current month
+  Sd2018= calc(SST2018[[which(m_index2018==m)]], sd, na.rm=T) # calculate the st. dev. of SST for all the records of the current month
+  
+  # add the monthly records to the stacks
+  print(Mean2018)
+  print(Sd2018)
+  
+  SSTmean2018 = stack(SSTmean2018,Mean2018)
+  SSTsd2018 = stack(SSTsd2018,Sd2018)
+  
+}
+writeRaster(SSTmean2018,"SSTPOT_2018Mmean.nc", overwrite=TRUE)
+writeRaster(SSTsd2018,"SSTPOT_2018Msd.nc", overwrite=TRUE)
+
+#######2017#######
+m_index2017= c()
+for (y in 2017) {
+  # Si es año bisieto
+  if (y%%4==0) { m_index2017= c(m_index2017, rep(1:12 , times = c(31,29,31,30,31,30,31,31,30,31,30,31))) }
+  # Si no es año bisiesto
+  else { m_index2017= c(m_index2017, rep(1:12 , times = c(31,28,31,30,31,30,31,31,30,31,30,31))) }
+}
+length(m_index2017)
+table(m_index2017) 
+
+SSTmean2017=stack()
+SSTsd2017=stack()
+
+for (m in 1:12) { # for every month
+  
+  print(m) # print current month to track the progress of the loop...
+  
+  Mean2017= mean(SST2017[[which(m_index2017==m)]], na.rm=T) # calculate the mean SST for all the records of the current month
+  Sd2017= calc(SST2017[[which(m_index2017==m)]], sd, na.rm=T) # calculate the st. dev. of SST for all the records of the current month
+  
+  # add the monthly records to the stacks
+  print(Mean2017)
+  print(Sd2017)
+  
+  SSTmean2017 = stack(SSTmean2017,Mean2017)
+  SSTsd2017 = stack(SSTsd2017,Sd2017)
+  
+}
+writeRaster(SSTmean2017,"SSTPOT_2017Mmean.nc", overwrite=TRUE)
+writeRaster(SSTsd2017,"SSTPOT_2017Msd.nc", overwrite=TRUE)
+
+#######2016#######
+m_index2016= c()
+for (y in 2016) {
+  # Si es año bisieto
+  if (y%%4==0) { m_index2016= c(m_index2016, rep(1:12 , times = c(31,29,31,30,31,30,31,31,30,31,30,31))) }
+  # Si no es año bisiesto
+  else { m_index2016 = c(m_index2016, rep(1:12 , times = c(31,28,31,30,31,30,31,31,30,31,30,31))) }
+}
+length(m_index2016)
+table(m_index2016) 
+
+SSTmean2016=stack()
+SSTsd2016=stack()
+
+for (m in 1:12) { # for every month
+  
+  print(m) # print current month to track the progress of the loop...
+  
+  Mean2016= mean(SST2016[[which(m_index2016==m)]], na.rm=T) # calculate the mean SST for all the records of the current month
+  Sd2016 = calc(SST2016[[which(m_index2016==m)]], sd, na.rm=T) # calculate the st. dev. of SST for all the records of the current month
+  
+  # add the monthly records to the stacks
+  print(Mean2016)
+  print(Sd2016)
+  
+  SSTmean2016 = stack(SSTmean2016,Mean2016)
+  SSTsd2016 = stack(SSTsd2016,Sd2016)
+  
+}
+writeRaster(SSTmean2016,"SSTPOT_2016Mmean.nc", overwrite=TRUE)
+writeRaster(SSTsd2016,"SSTPOT_2016Msd.nc", overwrite=TRUE)
+
+#######2015#######
+m_index2015= c()
+for (y in 2015) {
+  # Si es año bisieto
+  if (y%%4==0) { m_index2015= c(m_index2015, rep(1:12 , times = c(31,29,31,30,31,30,31,31,30,31,30,31))) }
+  # Si no es año bisiesto
+  else { m_index2015 = c(m_index2015, rep(1:12 , times = c(31,28,31,30,31,30,31,31,30,31,30,31))) }
+}
+length(m_index2015)
+table(m_index2015) 
+SSTmean2015=stack()
+SSTsd2015=stack()
+
+for (m in 1:12) { # for every month
+  
+  print(m) # print current month to track the progress of the loop...
+  
+  Mean2015= mean(SST2015[[which(m_index2015==m)]], na.rm=T) # calculate the mean SST for all the records of the current month
+  Sd2015 = calc(SST2015[[which(m_index2015==m)]], sd, na.rm=T) # calculate the st. dev. of SST for all the records of the current month
+  
+  # add the monthly records to the stacks
+  print(Mean2015)
+  print(Sd2015)
+  
+  SSTmean2015 = stack(SSTmean2015,Mean2015)
+  SSTsd2015 = stack(SSTsd2015,Sd2015)
+  
+}
+writeRaster(SSTmean2015,"SSTPOT_2015Mmean.nc", overwrite=TRUE)
+writeRaster(SSTsd2015,"SSTPOT_2015Msd.nc", overwrite=TRUE)
+
+#######2014#######
+m_index2014= c()
+for (y in 2014) {
+  # Si es año bisieto
+  if (y%%4==0) { m_index2014= c(m_index2014, rep(1:12 , times = c(31,29,31,30,31,30,31,31,30,31,30,31))) }
+  # Si no es año bisiesto
+  else { m_index2014 = c(m_index2014, rep(1:12 , times = c(31,28,31,30,31,30,31,31,30,31,30,31))) }
+}
+length(m_index2014)
+table(m_index2014) 
+
+SSTmean2014=stack()
+SSTsd2014=stack()
+
+for (m in 1:12) { # for every month
+  
+  print(m) # print current month to track the progress of the loop...
+  
+  Mean2014= mean(SST2014[[which(m_index2014==m)]], na.rm=T) # calculate the mean SST for all the records of the current month
+  Sd2014 = calc(SST2014[[which(m_index2014==m)]], sd, na.rm=T) # calculate the st. dev. of SST for all the records of the current month
+  
+  # add the monthly records to the stacks
+  print(Mean2014)
+  print(Sd2014)
+  
+  SSTmean2014 = stack(SSTmean2014,Mean2014)
+  SSTsd2014 = stack(SSTsd2014,Sd2014)
+  
+}
+writeRaster(SSTmean2014,"SSTPOT_2014Mmean.nc", overwrite=TRUE)
+writeRaster(SSTsd2014,"SSTPOT_2014Msd.nc", overwrite=TRUE)
+
+#######2013#######
+m_index2013= c()
+for (y in 2013) {
+  # Si es año bisieto
+  if (y%%4==0) { m_index2013= c(m_index2013, rep(1:12 , times = c(31,29,31,30,31,30,31,31,30,31,30,31))) }
+  # Si no es año bisiesto
+  else { m_index2013 = c(m_index2013, rep(1:12 , times = c(31,28,31,30,31,30,31,31,30,31,30,31))) }
+}
+length(m_index2013)
+table(m_index2013) 
+
+SSTmean2013=stack()
+SSTsd2013=stack()
+
+for (m in 1:12) { # for every month
+  
+  print(m) # print current month to track the progress of the loop...
+  
+  Mean2013= mean(SST2013[[which(m_index2013==m)]], na.rm=T) # calculate the mean SST for all the records of the current month
+  Sd2013 = calc(SST2013[[which(m_index2013==m)]], sd, na.rm=T) # calculate the st. dev. of SST for all the records of the current month
+  
+  # add the monthly records to the stacks
+  print(Mean2013)
+  print(Sd2013)
+  
+  SSTmean2013 = stack(SSTmean2013,Mean2013)
+  SSTsd2013 = stack(SSTsd2013,Sd2013)
+  
+}
+writeRaster(SSTmean2013,"SSTPOT_2013Mmean.nc", overwrite=TRUE)
+writeRaster(SSTsd2013,"SSTPOT_2013Msd.nc", overwrite=TRUE)
+#######2012#######
+m_index2012= c()
+for (y in 2012) {
+  # Si es año bisieto
+  if (y%%4==0) { m_index2012= c(m_index2012, rep(1:12 , times = c(31,29,31,30,31,30,31,31,30,31,30,31))) }
+  # Si no es año bisiesto
+  else { m_index2012 = c(m_index2012, rep(1:12 , times = c(31,28,31,30,31,30,31,31,30,31,30,31))) }
+}
+length(m_index2012)
+table(m_index2012) 
+
+SSTmean2012=stack()
+SSTsd2012=stack()
+
+for (m in 1:12) { # for every month
+  
+  print(m) # print current month to track the progress of the loop...
+  
+  Mean2012= mean(SST2012[[which(m_index2012==m)]], na.rm=T) # calculate the mean SST for all the records of the current month
+  Sd2012= calc(SST2012[[which(m_index2012==m)]], sd, na.rm=T) # calculate the st. dev. of SST for all the records of the current month
+  
+  # add the monthly records to the stacks
+  print(Mean2012)
+  print(Sd2012)
+  
+  SSTmean2012 = stack(SSTmean2012,Mean2012)
+  SSTsd2012 = stack(SSTsd2012,Sd2012)
+  
+}
+writeRaster(SSTmean2012,"SSTPOT_2012Mmean.nc", overwrite=TRUE)
+writeRaster(SSTsd2012,"SSTPOT_2012Msd.nc", overwrite=TRUE)
+
+#######2011#######
+m_index2011= c()
+for (y in 2011) {
+  # Si es año bisieto
+  if (y%%4==0) { m_index2011= c(m_index2011, rep(1:12 , times = c(31,29,31,30,31,30,31,31,30,31,30,31))) }
+  # Si no es año bisiesto
+  else { m_index2011 = c(m_index2011, rep(1:12 , times = c(31,28,31,30,31,30,31,31,30,31,30,31))) }
+}
+length(m_index2011)
+table(m_index2011) 
+
+
+SSTmean2011=stack()
+SSTsd2011=stack()
+
+for (m in 1:12) { # for every month
+  
+  print(m) # print current month to track the progress of the loop...
+  
+  Mean2011= mean(SST2011[[which(m_index2011==m)]], na.rm=T) # calculate the mean SST for all the records of the current month
+  Sd2011 = calc(SST2011[[which(m_index2011==m)]], sd, na.rm=T) # calculate the st. dev. of SST for all the records of the current month
+  
+  # add the monthly records to the stacks
+  print(Mean2011)
+  print(Sd2011)
+  
+  SSTmean2011 = stack(SSTmean2011,Mean2011)
+  SSTsd2011 = stack(SSTsd2011,Sd2011)
+  
+}
+writeRaster(SSTmean2011,"SSTPOT_2011Mmean.nc", overwrite=TRUE)
+writeRaster(SSTsd2011,"SSTPOT_2011Msd.nc", overwrite=TRUE)
+
+#######2010#######
+m_index2010= c()
+for (y in 2010) {
+  # Si es año bisieto
+  if (y%%4==0) { m_index2010= c(m_index2010, rep(1:12 , times = c(31,29,31,30,31,30,31,31,30,31,30,31))) }
+  # Si no es año bisiesto
+  else { m_index2010 = c(m_index2010, rep(1:12 , times = c(31,28,31,30,31,30,31,31,30,31,30,31))) }
+}
+length(m_index2010)
+table(m_index2010) 
+
+SSTmean2010=stack()
+SSTsd2010=stack()
+
+for (m in 1:12) { # for every month
+  
+  print(m) # print current month to track the progress of the loop...
+  
+  Mean2010= mean(SST2010[[which(m_index2010==m)]], na.rm=T) # calculate the mean SST for all the records of the current month
+  Sd2010 = calc(SST2010[[which(m_index2010==m)]], sd, na.rm=T) # calculate the st. dev. of SST for all the records of the current month
+  
+  # add the monthly records to the stacks
+  print(Mean2010)
+  print(Sd2010)
+  
+  SSTmean2010 = stack(SSTmean2010,Mean2010)
+  SSTsd2010 = stack(SSTsd2010,Sd2010)
+  
+}
+
+writeRaster(SSTmean2010,"SSTPOT_2010Mmean.nc", overwrite=TRUE)
+writeRaster(SSTsd2010,"SSTPOT_2010Msd.nc", overwrite=TRUE)
+
+#######2009#######
+m_index2009= c()
+for (y in 2009) {
+  # Si es año bisieto
+  if (y%%4==0) { m_index2009= c(m_index2009, rep(1:12 , times = c(31,29,31,30,31,30,31,31,30,31,30,31))) }
+  # Si no es año bisiesto
+  else { m_index2009 = c(m_index2009, rep(1:12 , times = c(31,28,31,30,31,30,31,31,30,31,30,31))) }
+}
+length(m_index2009)
+table(m_index2009) 
+
+SSTmean2009=stack()
+SSTsd2009=stack()
+
+for (m in 1:12) { # for every month
+  
+  print(m) # print current month to track the progress of the loop...
+  
+  Mean2009= mean(SST2009[[which(m_index2009==m)]], na.rm=T) # calculate the mean SST for all the records of the current month
+  Sd2009 = calc(SST2009[[which(m_index2009==m)]], sd, na.rm=T) # calculate the st. dev. of SST for all the records of the current month
+  
+  # add the monthly records to the stacks
+  print(Mean2009)
+  print(Sd2009)
+  
+  SSTmean2009 = stack(SSTmean2009,Mean2009)
+  SSTsd2009 = stack(SSTsd2009,Sd2009)
+  
+}
+writeRaster(SSTmean2009,"SSTPOT_2009Mmean.nc", overwrite=TRUE)
+writeRaster(SSTsd2009,"SSTPOT_2009Msd.nc", overwrite=TRUE)
+
+#######2008#######
+m_index2008= c()
+for (y in 2008) {
+  # Si es año bisieto
+  if (y%%4==0) { m_index2008= c(m_index2008, rep(1:12 , times = c(31,29,31,30,31,30,31,31,30,31,30,31))) }
+  # Si no es año bisiesto
+  else { m_index2008 = c(m_index2008, rep(1:12 , times = c(31,28,31,30,31,30,31,31,30,31,30,31))) }
+}
+length(m_index2008)
+table(m_index2008) 
+
+SSTmean2008=stack()
+SSTsd2008=stack()
+
+for (m in 1:12) { # for every month
+  
+  print(m) # print current month to track the progress of the loop...
+  
+  Mean2008= mean(SST2008[[which(m_index2008==m)]], na.rm=T) # calculate the mean SST for all the records of the current month
+  Sd2008 = calc(SST2008[[which(m_index2008==m)]], sd, na.rm=T) # calculate the st. dev. of SST for all the records of the current month
+  
+  # add the monthly records to the stacks
+  print(Mean2008)
+  print(Sd2008)
+  
+  SSTmean2008 = stack(SSTmean2008,Mean2008)
+  SSTsd2008= stack(SSTsd2008,Sd2008)
+  
+}
+
+writeRaster(SSTmean2008,"SSTPOT_2008Mmean.nc", overwrite=TRUE)
+writeRaster(SSTsd2008,"SSTPOT_2008Msd.nc", overwrite=TRUE)
+
+#######2007#######
+m_index2007= c()
+for (y in 2007) {
+  # Si es año bisieto
+  if (y%%4==0) { m_index2007= c(m_index2007, rep(1:12 , times = c(31,29,31,30,31,30,31,31,30,31,30,31))) }
+  # Si no es año bisiesto
+  else { m_index2007 = c(m_index2007, rep(1:12 , times = c(31,28,31,30,31,30,31,31,30,31,30,31))) }
+}
+length(m_index2007)
+table(m_index2007) 
+
+SSTmean2007=stack()
+SSTsd2007=stack()
+
+for (m in 1:12) { # for every month
+  
+  print(m) # print current month to track the progress of the loop...
+  
+  Mean2007= mean(SST2007[[which(m_index2007==m)]], na.rm=T) # calculate the mean SST for all the records of the current month
+  Sd2007= calc(SST2007[[which(m_index2007==m)]], sd, na.rm=T) # calculate the st. dev. of SST for all the records of the current month
+  
+  # add the monthly records to the stacks
+  print(Mean2007)
+  print(Sd2007)
+  
+  SSTmean2007 = stack(SSTmean2007,Mean2007)
+  SSTsd2007 = stack(SSTsd2007,Sd2007)
+  
+}
+
+writeRaster(SSTmean2007,"SSTPOT_2007Mmean.nc", overwrite=TRUE)
+writeRaster(SSTsd2007,"SSTPOT_2007Msd.nc", overwrite=TRUE)
+
+#######2006#######
+m_index2006= c()
+for (y in 2006) {
+  # Si es año bisieto
+  if (y%%4==0) { m_index2006= c(m_index2006, rep(1:12 , times = c(31,29,31,30,31,30,31,31,30,31,30,31))) }
+  # Si no es año bisiesto
+  else { m_index2006 = c(m_index2006, rep(1:12 , times = c(31,28,31,30,31,30,31,31,30,31,30,31))) }
+}
+length(m_index2006)
+table(m_index2006) 
+
+SSTmean2006=stack()
+SSTsd2006=stack()
+
+for (m in 1:12) { # for every month
+  
+  print(m) # print current month to track the progress of the loop...
+  
+  Mean2006= mean(SST2006[[which(m_index2006==m)]], na.rm=T) # calculate the mean SST for all the records of the current month
+  Sd2006= calc(SST2006[[which(m_index2006==m)]], sd, na.rm=T) # calculate the st. dev. of SST for all the records of the current month
+  
+  # add the monthly records to the stacks
+  print(Mean2006)
+  print(Sd2006)
+  
+  SSTmean2006 = stack(SSTmean2006,Mean2006)
+  SSTsd2006 = stack(SSTsd2006,Sd2006)
+  
+}
+writeRaster(SSTmean2006,"SSTPOT_2006Mmean.nc", overwrite=TRUE)
+writeRaster(SSTsd2006,"SSTPOT_2006Msd.nc", overwrite=TRUE)
+
+#######2005#######
+m_index2005= c()
+for (y in 2005) {
+  # Si es año bisieto
+  if (y%%4==0) { m_index2005= c(m_index2005, rep(1:12 , times = c(31,29,31,30,31,30,31,31,30,31,30,31))) }
+  # Si no es año bisiesto
+  else { m_index2005 = c(m_index2005, rep(1:12 , times = c(31,28,31,30,31,30,31,31,30,31,30,31))) }
+}
+length(m_index2005)
+table(m_index2005) 
+
+SSTmean2005=stack()
+SSTsd2005=stack()
+
+for (m in 1:12) { # for every month
+  
+  print(m) # print current month to track the progress of the loop...
+  
+  Mean2005= mean(SST2005[[which(m_index2005==m)]], na.rm=T) # calculate the mean SST for all the records of the current month
+  Sd2005= calc(SST2005[[which(m_index2005==m)]], sd, na.rm=T) # calculate the st. dev. of SST for all the records of the current month
+  
+  # add the monthly records to the stacks
+  print(Mean2005)
+  print(Sd2005)
+  
+  SSTmean2005 = stack(SSTmean2005,Mean2005)
+  SSTsd2005 = stack(SSTsd2005,Sd2005)
+  
+}
+writeRaster(SSTmean2005,"SSTPOT_2005Mmean.nc", overwrite=TRUE)
+writeRaster(SSTsd2005,"SSTPOT_2005Msd.nc", overwrite=TRUE)
+
+#######2004#######
+m_index2004= c()
+for (y in 2004) {
+  # Si es año bisieto
+  if (y%%4==0) { m_index2004= c(m_index2004, rep(1:12 , times = c(31,29,31,30,31,30,31,31,30,31,30,31))) }
+  # Si no es año bisiesto
+  else { m_index2004 = c(m_index2004, rep(1:12 , times = c(31,28,31,30,31,30,31,31,30,31,30,31))) }
+}
+length(m_index2004)
+table(m_index2004) 
+
+SSTmean2004=stack()
+SSTsd2004=stack()
+
+for (m in 1:12) { # for every month
+  
+  print(m) # print current month to track the progress of the loop...
+  
+  Mean2004= mean(SST2004[[which(m_index2004==m)]], na.rm=T) # calculate the mean SST for all the records of the current month
+  Sd2004= calc(SST2004[[which(m_index2004==m)]], sd, na.rm=T) # calculate the st. dev. of SST for all the records of the current month
+  
+  # add the monthly records to the stacks
+  print(Mean2004)
+  print(Sd2004)
+  
+  SSTmean2004 = stack(SSTmean2004,Mean2004)
+  SSTsd2004 = stack(SSTsd2004,Sd2004)
+  
+}
+writeRaster(SSTmean2004,"SSTPOT_2004Mmean.nc", overwrite=TRUE)
+writeRaster(SSTsd2004,"SSTPOT_2004Msd.nc", overwrite=TRUE)
+
+#######2003#######
+m_index2003= c()
+for (y in 2003) {
+  # Si es año bisieto
+  if (y%%4==0) { m_index2003= c(m_index2003, rep(1:12 , times = c(31,29,31,30,31,30,31,31,30,31,30,31))) }
+  # Si no es año bisiesto
+  else { m_index2003 = c(m_index2003, rep(1:12 , times = c(31,28,31,30,31,30,31,31,30,31,30,31))) }
+}
+length(m_index2003)
+table(m_index2003) 
+
+SSTmean2003=stack()
+SSTsd2003=stack()
+
+for (m in 1:12) { # for every month
+  
+  print(m) # print current month to track the progress of the loop...
+  
+  Mean2003= mean(SST2003[[which(m_index2003==m)]], na.rm=T) # calculate the mean SST for all the records of the current month
+  Sd2003= calc(SST2003[[which(m_index2003==m)]], sd, na.rm=T) # calculate the st. dev. of SST for all the records of the current month
+  
+  # add the monthly records to the stacks
+  print(Mean2003)
+  print(Sd2003)
+  
+  SSTmean2003 = stack(SSTmean2003,Mean2003)
+  SSTsd2003 = stack(SSTsd2003,Sd2003)
+  
+}
+writeRaster(SSTmean2003,"SSTPOT_2003Mmean.nc", overwrite=TRUE)
+writeRaster(SSTsd2003,"SSTPOT_2003Msd.nc", overwrite=TRUE)
+
+#######2002#########
+m_index2002= c()
+for (y in 2002) {
+  # Si es año bisieto
+  if (y%%4==0) { m_index2002= c(m_index2002, rep(1:12 , times = c(31,29,31,30,31,30,31,31,30,31,30,31))) }
+  # Si no es año bisiesto
+  else { m_index2002 = c(m_index2002, rep(1:12 , times = c(31,28,31,30,31,30,31,31,30,31,30,31))) }
+}
+length(m_index2002)
+table(m_index2002) 
+
+SSTmean2002=stack()
+SSTsd2002=stack()
+
+for (m in 1:12) { # for every month
+  
+  print(m) # print current month to track the progress of the loop...
+  
+  Mean2002= mean(SST2002[[which(m_index2002==m)]], na.rm=T) # calculate the mean SST for all the records of the current month
+  Sd2002= calc(SST2002[[which(m_index2002==m)]], sd, na.rm=T) # calculate the st. dev. of SST for all the records of the current month
+  
+  # add the monthly records to the stacks
+  print(Mean2002)
+  print(Sd2002)
+  
+  SSTmean2002= stack(SSTmean2002,Mean2002)
+  SSTsd2002= stack(SSTsd2002,Sd2002)
+  
+}
+writeRaster(SSTmean2002,"SSTPOT_2002Mmean.nc", overwrite=TRUE)
+writeRaster(SSTsd2002,"SSTPOT_2002Msd.nc", overwrite=TRUE)
+
+#######2001########
+m_index2001= c()
+for (y in 2001) {
+  # Si es año bisieto
+  if (y%%4==0) { m_index2001= c(m_index2001, rep(1:12 , times = c(31,29,31,30,31,30,31,31,30,31,30,31))) }
+  # Si no es año bisiesto
+  else { m_index2001 = c(m_index2001, rep(1:12 , times = c(31,28,31,30,31,30,31,31,30,31,30,31))) }
+}
+length(m_index2001)
+table(m_index2001) 
+
+SSTmean2001=stack()
+SSTsd2001=stack()
+
+for (m in 1:12) { # for every month
+  
+  print(m) # print current month to track the progress of the loop...
+  
+  Mean2001= mean(SST2001[[which(m_index2001==m)]], na.rm=T) # calculate the mean SST for all the records of the current month
+  Sd2001= calc(SST2001[[which(m_index2001==m)]], sd, na.rm=T) # calculate the st. dev. of SST for all the records of the current month
+  
+  # add the monthly records to the stacks
+  print(Mean2001)
+  print(Sd2001)
+  
+  SSTmean2001 = stack(SSTmean2001,Mean2001)
+  SSTsd2001 = stack(SSTsd2001,Sd2001)
+  
+}
+writeRaster(SSTmean2001,"SSTPOT_2001Mmean.nc", overwrite=TRUE)
+writeRaster(SSTsd2001,"SSTPOT_2001Msd.nc", overwrite=TRUE)
+
+#######2000########
+m_index2000= c()
+for (y in 2000) {
+  # Si es año bisieto
+  if (y%%4==0) { m_index2000= c(m_index2000, rep(1:12 , times = c(31,29,31,30,31,30,31,31,30,31,30,31))) }
+  # Si no es año bisiesto
+  else { m_index2000= c(m_index2000, rep(1:12 , times = c(31,28,31,30,31,30,31,31,30,31,30,31))) }
+}
+length(m_index2000)
+table(m_index2000) 
+
+SSTmean2000=stack()
+SSTsd2000=stack()
+
+for (m in 1:12) { # for every month
+  
+  print(m) # print current month to track the progress of the loop...
+  
+  Mean2000= mean(SST2000[[which(m_index2000==m)]], na.rm=T) # calculate the mean SST for all the records of the current month
+  Sd2000= calc(SST2000[[which(m_index2000==m)]], sd, na.rm=T) # calculate the st. dev. of SST for all the records of the current month
+  
+  # add the monthly records to the stacks
+  print(Mean2000)
+  print(Sd2000)
+  
+  SSTmean2000 = stack(SSTmean2000,Mean2000)
+  SSTsd2000 = stack(SSTsd2000,Sd2000)
+  
+}
+writeRaster(SSTmean2000,"SSTPOT_2000Mmean.nc", overwrite=TRUE)
+writeRaster(SSTsd2000,"SSTPOT_2000Msd.nc", overwrite=TRUE)
+
+#######1999########
+m_index1999= c()
+for (y in 1999) {
+  # Si es año bisieto
+  if (y%%4==0) { m_index1999= c(m_index1999, rep(1:12 , times = c(31,29,31,30,31,30,31,31,30,31,30,31))) }
+  # Si no es año bisiesto
+  else { m_index1999= c(m_index1999, rep(1:12 , times = c(31,28,31,30,31,30,31,31,30,31,30,31))) }
+}
+length(m_index1999)
+table(m_index1999) 
+
+SSTmean1999=stack()
+SSTsd1999=stack()
+
+for (m in 1:12) { # for every month
+  
+  print(m) # print current month to track the progress of the loop...
+  
+  Mean1999= mean(SST1999[[which(m_index1999==m)]], na.rm=T) # calculate the mean SST for all the records of the current month
+  Sd1999= calc(SST1999[[which(m_index1999==m)]], sd, na.rm=T) # calculate the st. dev. of SST for all the records of the current month
+  
+  # add the monthly records to the stacks
+  print(Mean1999)
+  print(Sd1999)
+  
+  SSTmean1999 = stack(SSTmean1999,Mean1999)
+  SSTsd1999= stack(SSTsd1999,Sd1999)
+  
+}
+
+writeRaster(SSTmean1999,"SSTPOT_1999Mmean.nc", overwrite=TRUE)
+writeRaster(SSTsd1999,"SSTPOT_1999Msd.nc", overwrite=TRUE)
+
+#######1999########
+m_index1998= c()
+for (y in 1998) {
+  # Si es año bisieto
+  if (y%%4==0) { m_index1998= c(m_index1998, rep(1:12 , times = c(31,29,31,30,31,30,31,31,30,31,30,31))) }
+  # Si no es año bisiesto
+  else { m_index1998= c(m_index1998, rep(1:12 , times = c(31,28,31,30,31,30,31,31,30,31,30,31))) }
+}
+length(m_index1998)
+table(m_index1998) 
+
+SSTmean1998=stack()
+SSTsd1998=stack()
+
+for (m in 1:12) { # for every month
+  
+  print(m) # print current month to track the progress of the loop...
+  
+  Mean1998= mean(SST1998[[which(m_index1998==m)]], na.rm=T) # calculate the mean SST for all the records of the current month
+  Sd1998= calc(SST1998[[which(m_index1998==m)]], sd, na.rm=T) # calculate the st. dev. of SST for all the records of the current month
+  
+  # add the monthly records to the stacks
+  print(Mean1998)
+  print(Sd1998)
+  
+  SSTmean1998 = stack(SSTmean1998,Mean1998)
+  SSTsd1998= stack(SSTsd1998,Sd1998)
+  
+}
+writeRaster(SSTmean1998,"SSTPOT_1998Mmean.nc", overwrite=TRUE)
+writeRaster(SSTsd1998,"SSTPOT_1998Msd.nc", overwrite=TRUE)
+```
+## 2.2. Overall mean and SD of SST
+<hr>
+<p> the raster of the monthly averages of each year in a single raster of SST from 1998 to 2020 (the same statistics that monthly variables).</p>
+```{r open the monthly SST raster, warning=FALSE, message=FALSE}
+setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/01_Daily_data/01_SST_data/02_SST_mean_and_OSD")
+SST_POT=stack(list.files(pattern='*mean.nc')) #there are 276 layers because each one contains an average of each month 
+setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/01_Daily_data/01_SST_data/")
+
+writeRaster(SST_POT,"SST_POT_Monthly.tif", overwrite=T)
+raster(SST_POT)
+```
+
+<hr>
+<p> Compute overall mean and standard deviation of the means. First, there are a index problem, each layer of *SST_POT_Monthly.tif* were labeled by layer 1,2... 276. The names of the layers will be changed, first a list of names desired will be created as an object, then using the function names *names*, the layer name will be changed.
+</p>
+
+```{r naming, warning=FALSE, message=FALSE,fig.align="center"}
+setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/01_Daily_data/01_SST_data/")
+names(SST_POT)
+date=c("X1998.01.16.12.00.00", "X1998.02.15.00.00.00","X1998.03.16.12.00.00"
+       ,"X1998.04.16.00.00.00", "X1998.05.16.12.00.00","X1998.06.16.00.00.00"
+       ,"X1998.07.16.12.00.00" ,"X1998.08.16.12.00.00","X1998.09.16.00.00.00"
+       ,"X1998.10.16.12.00.00", "X1998.11.16.00.00.00","X1998.12.16.12.00.00"
+       ,"X1999.01.16.12.00.00", "X1999.02.15.00.00.00","X1999.03.16.12.00.00"
+       ,"X1999.04.16.00.00.00", "X1999.05.16.12.00.00","X1999.06.16.00.00.00"
+       ,"X1999.07.16.12.00.00" ,"X1999.08.16.12.00.00","X1999.09.16.00.00.00"
+       ,"X1999.10.16.12.00.00", "X1999.11.16.00.00.00","X1999.12.16.12.00.00"
+       ,"X2000.01.16.12.00.00", "X2000.02.15.12.00.00","X2000.03.16.12.00.00"
+       ,"X2000.04.16.00.00.00", "X2000.05.16.12.00.00","X2000.06.16.00.00.00"
+       ,"X2000.07.16.12.00.00", "X2000.08.16.12.00.00","X2000.09.16.00.00.00"
+       ,"X2000.10.16.12.00.00" ,"X2000.11.16.00.00.00","X2000.12.16.12.00.00"
+       ,"X2001.01.16.12.00.00", "X2001.02.15.00.00.00","X2001.03.16.12.00.00"
+       ,"X2001.04.16.00.00.00", "X2001.05.16.12.00.00","X2001.06.16.00.00.00"
+       ,"X2001.07.16.12.00.00", "X2001.08.16.12.00.00","X2001.09.16.00.00.00"
+       ,"X2001.10.16.12.00.00", "X2001.11.16.00.00.00" ,"X2001.12.16.12.00.00"
+       ,"X2002.01.16.12.00.00","X2002.02.15.00.00.00","X2002.03.16.12.00.00"
+       ,"X2002.04.16.00.00.00","X2002.05.16.12.00.00","X2002.06.16.00.00.00"
+       ,"X2002.07.16.12.00.00","X2002.08.16.12.00.00","X2002.09.16.00.00.00"
+       ,"X2002.10.16.12.00.00","X2002.11.16.00.00.00","X2002.12.16.12.00.00"
+       ,"X2003.01.16.12.00.00","X2003.02.15.00.00.00","X2003.03.16.12.00.00"
+       ,"X2003.04.16.00.00.00","X2003.05.16.12.00.00","X2003.06.16.00.00.00"
+       ,"X2003.07.16.12.00.00","X2003.08.16.12.00.00","X2003.09.16.00.00.00"
+       ,"X2003.10.16.12.00.00","X2003.11.16.00.00.00","X2003.12.16.12.00.00"
+       ,"X2004.01.16.12.00.00","X2004.02.15.12.00.00","X2004.03.16.12.00.00"
+       ,"X2004.04.16.00.00.00","X2004.05.16.12.00.00","X2004.06.16.00.00.00"
+       ,"X2004.07.16.12.00.00","X2004.08.16.12.00.00","X2004.09.16.00.00.00"
+       ,"X2004.10.16.12.00.00","X2004.11.16.00.00.00","X2004.12.16.12.00.00"
+       ,"X2005.01.16.12.00.00","X2005.02.15.00.00.00","X2005.03.16.12.00.00"
+       ,"X2005.04.16.00.00.00","X2005.05.16.12.00.00","X2005.06.16.00.00.00"
+       ,"X2005.07.16.12.00.00","X2005.08.16.12.00.00","X2005.09.16.00.00.00"
+       ,"X2005.10.16.12.00.00","X2005.11.16.00.00.00","X2005.12.16.12.00.00"
+       ,"X2006.01.16.12.00.00","X2006.02.15.00.00.00","X2006.03.16.12.00.00"
+       ,"X2006.04.16.00.00.00","X2006.05.16.12.00.00","X2006.06.16.00.00.00"
+       ,"X2006.07.16.12.00.00","X2006.08.16.12.00.00","X2006.09.16.00.00.00"
+       ,"X2006.10.16.12.00.00","X2006.11.16.00.00.00","X2006.12.16.12.00.00"
+       ,"X2007.01.16.12.00.00","X2007.02.15.00.00.00","X2007.03.16.12.00.00"
+       ,"X2007.04.16.00.00.00","X2007.05.16.12.00.00","X2007.06.16.00.00.00"
+       ,"X2007.07.16.12.00.00","X2007.08.16.12.00.00","X2007.09.16.00.00.00"
+       ,"X2007.10.16.12.00.00","X2007.11.16.00.00.00","X2007.12.16.12.00.00"
+       ,"X2008.01.16.12.00.00","X2008.02.15.12.00.00","X2008.03.16.12.00.00"
+       ,"X2008.04.16.00.00.00","X2008.05.16.12.00.00","X2008.06.16.00.00.00"
+       ,"X2008.07.16.12.00.00","X2008.08.16.12.00.00","X2008.09.16.00.00.00"
+       ,"X2008.10.16.12.00.00","X2008.11.16.00.00.00","X2008.12.16.12.00.00"
+       ,"X2009.01.16.12.00.00","X2009.02.15.00.00.00","X2009.03.16.12.00.00"
+       ,"X2009.04.16.00.00.00","X2009.05.16.12.00.00","X2009.06.16.00.00.00"
+       ,"X2009.07.16.12.00.00","X2009.08.16.12.00.00","X2009.09.16.00.00.00"
+       ,"X2009.10.16.12.00.00","X2009.11.16.00.00.00","X2009.12.16.12.00.00"
+       ,"X2010.01.16.12.00.00","X2010.02.15.00.00.00","X2010.03.16.12.00.00"
+       ,"X2010.04.16.00.00.00","X2010.05.16.12.00.00","X2010.06.16.00.00.00"
+       ,"X2010.07.16.12.00.00","X2010.08.16.12.00.00","X2010.09.16.00.00.00"
+       ,"X2010.10.16.12.00.00","X2010.11.16.00.00.00","X2010.12.16.12.00.00"
+       ,"X2011.01.16.12.00.00","X2011.02.15.00.00.00","X2011.03.16.12.00.00"
+       ,"X2011.04.16.00.00.00","X2011.05.16.12.00.00","X2011.06.16.00.00.00"
+       ,"X2011.07.16.12.00.00","X2011.08.16.12.00.00","X2011.09.16.00.00.00"
+       ,"X2011.10.16.12.00.00","X2011.11.16.00.00.00","X2011.12.16.12.00.00"
+       ,"X2012.01.16.12.00.00","X2012.02.15.12.00.00","X2012.03.16.12.00.00"
+       ,"X2012.04.16.00.00.00","X2012.05.16.12.00.00","X2012.06.16.00.00.00"
+       ,"X2012.07.16.12.00.00","X2012.08.16.12.00.00","X2012.09.16.00.00.00"
+       ,"X2012.10.16.12.00.00","X2012.11.16.00.00.00","X2012.12.16.12.00.00"
+       ,"X2013.01.16.12.00.00","X2013.02.15.00.00.00","X2013.03.16.12.00.00"
+       ,"X2013.04.16.00.00.00","X2013.05.16.12.00.00","X2013.06.16.00.00.00"
+       ,"X2013.07.16.12.00.00","X2013.08.16.12.00.00","X2013.09.16.00.00.00"
+       ,"X2013.10.16.12.00.00","X2013.11.16.00.00.00","X2013.12.16.12.00.00"
+       ,"X2014.01.16.12.00.00","X2014.02.15.00.00.00","X2014.03.16.12.00.00"
+       ,"X2014.04.16.00.00.00","X2014.05.16.12.00.00","X2014.06.16.00.00.00"
+       ,"X2014.07.16.12.00.00","X2014.08.16.12.00.00","X2014.09.16.00.00.00"
+       ,"X2014.10.16.12.00.00","X2014.11.16.00.00.00","X2014.12.16.12.00.00"
+       ,"X2015.01.16.00.00.00","X2015.02.16.12.00.00","X2015.03.16.00.00.00"
+       ,"X2015.04.16.00.00.00","X2015.05.16.12.00.00","X2015.06.16.00.00.00"
+       ,"X2015.07.16.12.00.00","X2015.08.16.12.00.00","X2015.09.16.00.00.00"
+       ,"X2015.10.16.12.00.00","X2015.11.16.00.00.00","X2015.12.16.12.00.00"
+       ,"X2016.01.16.12.00.00","X2016.02.15.12.00.00","X2016.03.16.12.00.00"
+       ,"X2016.04.16.00.00.00","X2016.05.16.12.00.00","X2016.06.16.00.00.00"
+       ,"X2016.07.16.12.00.00","X2016.08.16.12.00.00","X2016.09.16.00.00.00"
+       ,"X2016.10.16.12.00.00","X2016.11.16.00.00.00","X2016.12.16.12.00.00"
+       ,"X2017.01.16.12.00.00","X2017.02.15.00.00.00","X2017.03.16.12.00.00"
+       ,"X2017.04.16.00.00.00","X2017.05.16.12.00.00","X2017.06.16.00.00.00"
+       ,"X2017.07.16.12.00.00","X2017.08.16.12.00.00","X2017.09.16.00.00.00"
+       ,"X2017.10.16.12.00.00","X2017.11.16.00.00.00","X2017.12.16.12.00.00"
+       ,"X2018.01.16.12.00.00","X2018.02.15.00.00.00","X2018.03.16.12.00.00"
+       ,"X2018.04.16.00.00.00","X2018.05.16.12.00.00","X2018.06.16.00.00.00"
+       ,"X2018.07.16.12.00.00","X2018.08.16.12.00.00","X2018.09.16.00.00.00"
+       ,"X2018.10.16.12.00.00","X2018.11.16.00.00.00","X2018.12.16.12.00.00"
+       ,"X2019.01.16.12.00.00","X2019.02.15.00.00.00","X2019.03.16.12.00.00"
+       ,"X2019.04.16.00.00.00","X2019.05.16.12.00.00","X2019.06.16.00.00.00"
+       ,"X2019.07.16.12.00.00","X2019.08.16.12.00.00","X2019.09.16.00.00.00"
+       ,"X2019.10.16.12.00.00","X2019.11.16.00.00.00","X2019.12.16.12.00.00",
+       "X2020.01.16.12.00.00","X2020.02.15.00.00.00","X2020.03.16.12.00.00"
+       ,"X2020.04.16.00.00.00","X2020.05.16.12.00.00","X2020.06.16.00.00.00"
+       ,"X2020.07.16.12.00.00","X2020.08.16.12.00.00","X2020.09.16.00.00.00"
+       ,"X2020.10.16.12.00.00","X2020.11.16.00.00.00","X2020.12.16.12.00.00")#the object that contain the label of each month from 1998 to 2020
+length(date)#For count the length of the date object=276
+length(names(SST_POT))#to be secure that date object  match the names of the raster SST_POT_Monthly.nc
+names(SST_POT)=date#change the names of the each layer of the raster SST_POT_Monthly.nc
+names(SST_POT)#To be sure that the names were changed
+```
+
+<p> Compute overall mean of the SST of ETP from 1998 to 2020 </p>
+
+```{r OM SST , warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10, fig.cap="Fig.1. Overall mean of SST in ETP from 1998 to 2020"}
+#Overall mean of SST
+#Open monthly record of SST 
+SST_POT_OM=mean(SST_POT, na.rm=T)#to calculate the monthly mean from 1998 to 2020
+writeRaster(SST_POT_OM,"OM_SST_POT.tif",overwrite =T)
+raster(SST_POT_OM)
+plot(SST_POT_OM)
+```
+<p> Compute overall SD of the SST of ETP from 1998 to 2020 </p>
+```{r OSD SST, warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10, fig.cap="Fig.2. Overall SD of SST in ETP from 1998 to 2020"}
+#Overall SD of SST
+SST_POT_OsD=calc(SST_POT, sd, na.rm=T)#to calculate the Overall SD of SST of POT
+writeRaster(SST_POT_OsD,"SST_OSD_POT_1998-2020.tif",overwrite=TRUE)
+raster("SST_OSD_POT_1998-2020.tif")
+plot(SST_POT_OsD)
+```
+
+## 3. Min and Max montlhly values of SST
+<hr>
+
+<p>  We now have to identify which months are the coldest and the hottest across the study area. In this case we will use the  most rigorous approach would be to identify the hottest/coldest month for every pixel.
+
+
+```{r idexing, warning=FALSE, message=FALSE,fig.cap="Fig.3. Monthly mean of SST in ETP from 1998 to 2020"}
+dateind10=c()# Create an object that will have all months 
+for (y in 1998:2020) {# iteration from January 1998 to December 2020
+  for (m10 in 1:12) {#Iteration for each month (from January to December)
+    mc10 = m10
+    if (nchar(as.character(m10))==1) {mc10 =paste0('0', as.character(m10))}
+    dateind10<- c(dateind10, paste0(mc10,'.',as.character(y)))
+  }
+}
+dateind10 #This object will contain all months that until now are called .01 in names of the layer   
+names(SST_POT)=dateind10 #Now the names of each layer will be change, remember that each layer of the raster have the name of X1998.01.16.12.00.00;in this case 01 will be January
+# now we will create a raster that will contain the information of each month, for example, the mean of January from 1998 to 2020, then February and and so on to December
+SST_means<- stack()
+for (m10 in 1:12) {# Iteration to calculate the mean of each month where m=1(01;January),m2=February ...m12=December
+  mc10 <- m10 # To create an object called mc that correspond to each m in the iteration
+  if (nchar(as.character(m10))==1) {mc10 <- paste0('0', as.character(m10))} #To change the name of each month January=01, February=02
+  pat10 <- paste0('X',as.character(mc10),'.\\d\\d\\d\\d')#NOW THE MONTHS OF ALL YEARS ARE GROUPED
+  sublist10 <- as.character(names(SST_POT)[regexpr(pat10, names(SST_POT),perl = T)!= (-1)]) # This object contains all the data by month, all of January, February, etc.
+  print(as.character(mc10))
+  stackMON10 <- stack() #create a raster that will contain all the annual rasters for each month
+  for (y in sublist10) {
+    R10<- eval(parse(text=paste0("SST_POT$",y)))
+    stackMON10 <- stack(stackMON10, R10)
+  }
+  
+  SST_means <- stack(SST_means, mean(stackMON10, na.rm=T)) #The average of all the years of each month is calculated, that is, the averages of January are taken from 1998-2020, and so on until 2020
+}
+names(SST_means)=c('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December')#Change the name of 01 to January and so on...
+plot(SST_means)
+```
+<p> Maximun monthly mean (MMMSST)
+```{r MMMSST, warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10, fig.cap="Fig.4. Maximun monthly mean of SST in ETP from 1998 to 2020"}
+#Now we will calculate the hottest and coolest month for each pixel from 1998 to 2020
+#Maximum Monthly mean value of SST 
+MMMSST=(calc(stack(SST_means), max))
+plot(MMMSST)
+writeRaster(MMMSST,"MMMax_SST_POT_1998-2020.tif", overwrite=TRUE)#create a raster
+```
+<p> Minimum monthly mean (MMMSST)
+```{r Minimum  SST, warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10, fig.cap="Fig.5. Maximun monthly mean of SST in ETP from 1998 to 2020"}
+#Minimum  Monthly value of SST  
+MMmSST=(calc(stack(SST_means), min))
+plot(MMmSST)
+writeRaster(MMmSST,"MMmin_SST_POT_1998-2020.tif", overwrite=TRUE)#create a raster
+```
