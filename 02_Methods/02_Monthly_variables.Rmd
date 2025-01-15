@@ -89,10 +89,10 @@ library(rnaturalearthdata)
 ##Set directory 
 #Open monthly record of SSS
 setwd("~/Doctorado/Acanthaster/Seascape genomics data/01_Seascape_characterization/02_SSS_POT/")
-SSS_POT=brick("SSS_POT_1998-2020.nc")# The monthly data of the POT begin in January 1998 until December 2019
+SSS_POT<-brick("SSS_POT_1998-2020.nc")# The monthly data of the POT begin in January 1998 until December 2019
 SSS_POT
 #Calculate de overall mean
-SSS_OM = mean(SSS_POT, na.rm=T)
+SSS_OM<-mean(SSS_POT, na.rm=T)
 plot(SSS_OM)
 setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/02_Monthly_data/01_SSS_data")
 writeRaster(SSS_OM,"OM_SSS_POT_1998-2020.tif",overwrite=TRUE)
@@ -100,7 +100,7 @@ writeRaster(SSS_OM,"OM_SSS_POT_1998-2020.tif",overwrite=TRUE)
 ## Overal SD 
 ```{r OSD SSS, warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10,fig.cap="Fig.2 SSS Overall SD of TEP from  1998 to 2020"}
 ##Calculate de overall DSD
-SSM_OSD = calc(SSS_POT, sd, na.rm=T)
+SSM_OSD <- calc(SSS_POT, sd, na.rm=T)
 plot(SSM_OSD)
 setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/02_Monthly_data/01_SSS_data")
 writeRaster(SSM_OSD,"OSD_SSS_POT_1998-2020.tif",overwrite=TRUE)
@@ -111,10 +111,10 @@ writeRaster(SSM_OSD,"OSD_SSS_POT_1998-2020.tif",overwrite=TRUE)
 ```{r OM KD, warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10, fig.cap="Fig.3 Kd490 Overall mean of TEP from  1998 to 2020"}
 #Open monthly record of SSS 
 setwd("~/Doctorado/Acanthaster/Seascape genomics data/01_Seascape_characterization/05_KD49_POT/")
-kd49_POT=brick("kd490_POT_1998-2020.nc")
+kd49_POT <- brick("kd490_POT_1998-2020.nc")
 kd49_POT
 #Calculate de overall mean
-kd49_OM = mean(kd49_POT, na.rm=T)
+kd49_OM <- mean(kd49_POT, na.rm=T)
 plot(kd49_OM)
 setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/02_Monthly_data/02_Kd490_data")
 writeRaster(kd49_OM,"OM_kd490_POT_1998-2020.tif",overwrite=TRUE)
@@ -122,7 +122,7 @@ writeRaster(kd49_OM,"OM_kd490_POT_1998-2020.tif",overwrite=TRUE)
 ## Overal SD 
 ```{r OSD KD, warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10, fig.cap="Fig.4 Kd480 Overall SD of TEP from  1998 to 2020"}
 ##Calculate de overall SD
-kd490_OSD = calc(kd49_POT, sd, na.rm=T)
+kd490_OSD <- calc(kd49_POT, sd, na.rm=T)
 plot(kd490_OSD)
 setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/02_Monthly_data/02_Kd490_data")
 writeRaster(kd490_OSD,"OSD_K490_POT_2003-2020.tif",overwrite=TRUE)
@@ -132,20 +132,20 @@ writeRaster(kd490_OSD,"OSD_K490_POT_2003-2020.tif",overwrite=TRUE)
 <p>
 ```{r OM CHA, warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10, fig.cap="Fig.5 Chlorophyll a Overall mean of TEP from  1998 to 2020"}
 setwd("~/Doctorado/Acanthaster/Seascape genomics data/01_Seascape_characterization/03_Chla_POT/")
-cha_98_99=brick("Chla_POT_1998-1999.nc")
-cha_00_20=brick("Chla_POT_2000_2020.nc")
-cha_POT=stack(cha_98_99,cha_00_20)
+cha_98_99 <- brick("Chla_POT_1998-1999.nc")
+cha_00_20 <- brick("Chla_POT_2000_2020.nc")
+cha_POT <- stack(cha_98_99,cha_00_20)
 cha_POT
 writeRaster(cha_POT,"cha_POT_1998-2020.tif", overwrite=TRUE)
 #Calculate de overall mean
-cha_OM = mean(cha_POT, na.rm=T)
+cha_OM <- mean(cha_POT, na.rm=T)
 plot(cha_OM)
 setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/02_Monthly_data/03_Cha_data")
 writeRaster(cha_OM,"OM_cha_POT_1998-2020.tif",overwrite=TRUE)
 ```
 ## Overall SD
 ```{r OSD CHA, fig.align="center", fig.cap="Fig 6. Chlorophyll a Overall SD of TEP from  1998 to 2020",fig.height=10, fig.width=10}
-cha_OSD = calc(cha_POT, sd, na.rm=T)
+cha_OSD <- calc(cha_POT, sd, na.rm=T)
 plot(cha_OSD)
 setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/02_Monthly_data/03_Cha_data")
 writeRaster(cha_OSD,"OSD_cha_POT_2003-2020.tif",overwrite=TRUE)
@@ -154,17 +154,17 @@ writeRaster(cha_OSD,"OSD_cha_POT_2003-2020.tif",overwrite=TRUE)
 ## Overall mean
 ```{r OM PH, warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10, fig.cap="Fig.7 pH Overall mean of TEP from  1998 to 2020"}
 setwd("~/Doctorado/Acanthaster/Seascape genomics data/01_Seascape_characterization/04_Other_characterization_POT/")
-pH_POT=stack("ph_POT_1998_2020.nc")
+pH_POT <- stack("ph_POT_1998_2020.nc")
 pH_POT
 #Calculate de overall mean
-pH_OM = mean(pH_POT, na.rm=T)
+pH_OM <- mean(pH_POT, na.rm=T)
 plot(pH_OM)
 setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/02_Monthly_data/04_pH_data")
 writeRaster(pH_OM,"OM_pH_POT_1998-2020.tif",overwrite=TRUE)
 ```
 ## Overall SD
 ```{r OSD PH, warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10, fig.cap="Fig.8 pH Overall SD of TEP from  1998 to 2020"}
-pH_OSD = calc(pH_POT, sd, na.rm=T)
+pH_OSD <- calc(pH_POT, sd, na.rm=T)
 plot(pH_OSD)
 setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/02_Monthly_data/04_pH_data")
 writeRaster(pH_OSD,"OSD_pH_POT_2003-2020.tif",overwrite=TRUE)
@@ -177,24 +177,24 @@ writeRaster(pH_OSD,"OSD_pH_POT_2003-2020.tif",overwrite=TRUE)
 ##load raster - monthly resolution
 ```{r EWV and NWV, warning=FALSE, message=FALSE}
 setwd("~/Doctorado/Acanthaster/Seascape genomics data/01_Seascape_characterization/9_Corrientes_velocidad/")
-POT_EWV = stack('Westward_TEP_1998_2019.nc')
-POT_NWV = stack("Northward_TEP_1998_2019.nc")
+POT_EWV <- stack('Westward_TEP_1998_2019.nc')
+POT_NWV <- stack("Northward_TEP_1998_2019.nc")
 ```
 <p>In practice, the overall water velocity is the square root of the sum of squares of northward and eastward velocity</p>
 ```{r SCV, warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10}
-POT_SCV = sqrt(POT_EWV^2+POT_NWV^2)
+POT_SCV <- sqrt(POT_EWV^2+POT_NWV^2)
 ```
 ## Overall mean
 ```{r OM SCV, warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10, fig.cap="Fig.9 overall water velocity Mean"}
 #Calculate de overall mean
-POTSCV_OM = mean(POT_SCV, na.rm=T)
+POTSCV_OM <- mean(POT_SCV, na.rm=T)
 plot(POTSCV_OM)
 setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/02_Monthly_data/05_SCV_data")
 writeRaster(POTSCV_OM, 'POT_SCV_OM.tif', overwrite=T)
 ```
 ## Overall SD
 ```{r OSD SCV, warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10, fig.cap="Fig.10 Overall water velocity SD"}
-POTSCV_OSD = calc(POT_SCV, sd, na.rm=T)
+POTSCV_OSD <- calc(POT_SCV, sd, na.rm=T)
 plot(POTSCV_OSD)
 setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/02_Monthly_data/05_SCV_data")
 writeRaster(POTSCV_OSD, 'POT_SCV_OSD.tif', overwrite=T)
