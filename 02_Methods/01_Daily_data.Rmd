@@ -129,103 +129,103 @@ junk981 <- GET('https://coastwatch.pfeg.noaa.gov/erddap/griddap/NOAA_DHW.nc?CRW_
 ```{r Stack the downloaded raster layers, warning=FALSE, message=FALSE}
 setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/01_Daily_data/01_SST_data/01_Daily_data_downloaded")
 #############################2020###############################################3
-SST20201=brick( 'SST_coral_temp_2020-May.nc') # brick function is used to join the records because it takes less time than Stack
-SST20202=brick('SST_coral_temp_2020_DIC.nc')                
-SST2020=stack(SST20201,SST20202) #To have all the information of the year, Stack is used because birck does not allow joining two raster objects
+SST20201<-brick( 'SST_coral_temp_2020-May.nc') # brick function is used to join the records because it takes less time than Stack
+SST20202<-brick('SST_coral_temp_2020_DIC.nc')                
+SST2020<-stack(SST20201,SST20202) #To have all the information of the year, Stack is used because birck does not allow joining two raster objects
 #########################2019############
-SST20191=brick( 'SST_coral_temp_2019_May.nc') 
-SST20192=brick('SST_coral_temp_2019_DIC.nc')                
-SST2019=stack(SST20191,SST20192)
+SST20191<-brick( 'SST_coral_temp_2019_May.nc') 
+SST20192<-brick('SST_coral_temp_2019_DIC.nc')                
+SST2019<-stack(SST20191,SST20192)
 ###################2018###############
-SST20181=brick( 'SST_coral_temp_2018_May.nc') 
-SST20182=brick('SST_coral_temp_2018_DIC.nc')                
-SST2018=stack(SST20181,SST20182)
+SST20181<-brick( 'SST_coral_temp_2018_May.nc') 
+SST20182<-brick('SST_coral_temp_2018_DIC.nc')                
+SST2018<-stack(SST20181,SST20182)
 ########2017######
-SST20171=brick( 'SST_coral_temp_2017_May.nc') 
-SST20172=brick('SST_coral_temp_2017_DIC.nc')                
-SST2017=stack(SST20171,SST20172)
+SST20171<-brick( 'SST_coral_temp_2017_May.nc') 
+SST20172<-brick('SST_coral_temp_2017_DIC.nc')                
+SST2017<-stack(SST20171,SST20172)
 ########2016########
-SST20161=brick( 'SST_coral_temp_2016_May.nc') 
-SST20162=brick('SST_coral_temp_2016_DIC.nc')                
-SST2016=stack(SST20161,SST20162)
+SST20161<-brick( 'SST_coral_temp_2016_May.nc') 
+SST20162<-brick('SST_coral_temp_2016_DIC.nc')                
+SST2016<-stack(SST20161,SST20162)
 ##########2015#########
-SST20151=brick('SST_coral_temp_2015_May.nc') 
-SST20152=brick('SST_coral_temp_2015_DIC.nc')                
-SST2015=stack(SST20151,SST20152)
+SST20151<-brick('SST_coral_temp_2015_May.nc') 
+SST20152<-brick('SST_coral_temp_2015_DIC.nc')                
+SST2015<-stack(SST20151,SST20152)
 ##########2014#########
-SST20141=brick('SST_coral_temp_2014_May.nc') 
-SST20142=brick('SST_coral_temp_2014_DIC.nc')                
-SST2014=stack(SST20141,SST20142)
+SST20141<-brick('SST_coral_temp_2014_May.nc') 
+SST20142<-brick('SST_coral_temp_2014_DIC.nc')                
+SST2014<-stack(SST20141,SST20142)
 ##########2013#########
-SST20131=brick('SST_coral_temp_2013_May.nc') 
-SST20132=brick('SST_coral_temp_2013_DIC.nc')                
-SST2013=stack(SST20131,SST20132)
+SST20131<-brick('SST_coral_temp_2013_May.nc') 
+SST20132<-brick('SST_coral_temp_2013_DIC.nc')                
+SST2013<-stack(SST20131,SST20132)
 ##########2012#########
-SST20121=brick('SST_coral_temp_2012_May.nc') 
-SST20122=brick('SST_coral_temp_2012_DIC.nc')                
-SST2012=stack(SST20121,SST20122)
+SST20121<-brick('SST_coral_temp_2012_May.nc') 
+SST20122<-brick('SST_coral_temp_2012_DIC.nc')                
+SST2012<-stack(SST20121,SST20122)
 
 ##########2011#########
-SST20111=brick('SST_coral_temp_2011_May.nc') 
-SST20112=brick('SST_coral_temp_2011_DIC.nc')                
-SST2011=stack(SST20111,SST20112)
+SST20111<-brick('SST_coral_temp_2011_May.nc') 
+SST20112<-brick('SST_coral_temp_2011_DIC.nc')                
+SST2011<-stack(SST20111,SST20112)
 ##########2010#########
-SST20101=brick('SST_coral_temp_2010_May.nc') 
-SST20102=brick('SST_coral_temp_2010_DIC.nc')                
-SST2010=stack(SST20101,SST20102)
+SST20101<-brick('SST_coral_temp_2010_May.nc') 
+SST20102<-brick('SST_coral_temp_2010_DIC.nc')                
+SST2010<-stack(SST20101,SST20102)
 ##########2009#########
-SST20091=brick('SST_coral_temp_2009_May.nc') 
-SST20092=brick('SST_coral_temp_2009_DIC.nc')                
-SST2009=stack(SST20091,SST20092)
+SST20091<-brick('SST_coral_temp_2009_May.nc') 
+SST20092<-brick('SST_coral_temp_2009_DIC.nc')                
+SST2009<-stack(SST20091,SST20092)
 ##########2008#########
-SST20081=brick('SST_coral_temp_2008_May.nc') 
-SST20082=brick('SST_coral_temp_2008_DIC.nc')                
-SST2008=stack(SST20081,SST20082)
+SST20081<-brick('SST_coral_temp_2008_May.nc') 
+SST20082<-brick('SST_coral_temp_2008_DIC.nc')                
+SST2008<-stack(SST20081,SST20082)
 ##########2007#########
-SST20071=brick('SST_coral_temp_2007_May.nc') 
-SST20072=brick('SST_coral_temp_2007_DIC.nc')                
-SST2007=stack(SST20071,SST20072)
+SST20071<-brick('SST_coral_temp_2007_May.nc') 
+SST20072<-brick('SST_coral_temp_2007_DIC.nc')                
+SST2007<-stack(SST20071,SST20072)
 ##########2006#########
-SST20061=brick('SST_coral_temp_2006_May.nc') 
-SST20062=brick('SST_coral_temp_2006_DIC.nc')                
-SST2006=stack(SST20061,SST20062)
+SST20061<-brick('SST_coral_temp_2006_May.nc') 
+SST20062<-brick('SST_coral_temp_2006_DIC.nc')                
+SST2006<-stack(SST20061,SST20062)
 ##########2005#########
-SST20051=brick('SST_coral_temp_2005_May.nc') 
-SST20052=brick('SST_coral_temp_2005_DIC.nc')                
-SST2005=stack(SST20051,SST20052)
+SST20051<-brick('SST_coral_temp_2005_May.nc') 
+SST20052<-brick('SST_coral_temp_2005_DIC.nc')                
+SST2005<-stack(SST20051,SST20052)
 ##########2004#########
-SST20041=brick('SST_coral_temp_2004_May.nc') 
-SST20042=brick('SST_coral_temp_2004_DIC.nc')                
-SST2004=stack(SST20041,SST20042)
+SST20041<-brick('SST_coral_temp_2004_May.nc') 
+SST20042<-brick('SST_coral_temp_2004_DIC.nc')                
+SST2004<-stack(SST20041,SST20042)
 #######2003######
-SST20031=brick('SST_coral_temp_2003_May.nc') 
-SST20032=brick('SST_coral_temp_2003_DIC.nc')                
-SST2003=stack(SST20031,SST20032)
+SST20031<-brick('SST_coral_temp_2003_May.nc') 
+SST20032<-brick('SST_coral_temp_2003_DIC.nc')                
+SST2003<-stack(SST20031,SST20032)
 #######2002######
-SST20021=brick('SST_coral_temp_2002_May.nc') 
-SST20022=brick('SST_coral_temp_2002_DIC.nc')                
-SST2002=stack(SST20021,SST20022)
+SST20021<-brick('SST_coral_temp_2002_May.nc') 
+SST20022<-brick('SST_coral_temp_2002_DIC.nc')                
+SST2002<-stack(SST20021,SST20022)
 #######2001######
-SST20011=brick('SST_coral_temp_2001_May.nc') 
-SST20012=brick('SST_coral_temp_2001_DIC.nc')                
-SST2001=stack(SST20011,SST20012)
+SST20011<-brick('SST_coral_temp_2001_May.nc') 
+SST20012<-brick('SST_coral_temp_2001_DIC.nc')                
+SST2001<-stack(SST20011,SST20012)
 #######2000######
-SST20001=brick('SST_coral_temp_2000_May.nc') 
-SST20002=brick('SST_coral_temp_2000_DIC.nc')                
-SST2000=stack(SST20001,SST20002)
+SST20001<-brick('SST_coral_temp_2000_May.nc') 
+SST20002<-brick('SST_coral_temp_2000_DIC.nc')                
+SST2000<-stack(SST20001,SST20002)
 SST2000
 #######2000######
-SST20001=brick('SST_coral_temp_2000_May.nc') 
-SST20002=brick('SST_coral_temp_2000_DIC.nc')                
-SST2000=stack(SST20001,SST20002)
+SST20001<-brick('SST_coral_temp_2000_May.nc') 
+SST20002<-brick('SST_coral_temp_2000_DIC.nc')                
+SST2000<-stack(SST20001,SST20002)
 #######1999######
-SST19991=brick('SST_coral_temp_1999_May.nc') 
-SST19992=brick('SST_coral_temp_1999_DIC.nc')                
-SST1999=stack(SST19991,SST19992)
+SST19991<-brick('SST_coral_temp_1999_May.nc') 
+SST19992<-brick('SST_coral_temp_1999_DIC.nc')                
+SST1999<-stack(SST19991,SST19992)
 #######1998######
-SST19981=brick('SST_coral_temp_1998_May.nc') 
-SST19982=brick('SST_coral_temp_1998_DIC.nc')                
-SST1998=stack(SST19981,SST19982)
+SST19981<-brick('SST_coral_temp_1998_May.nc') 
+SST19982<-brick('SST_coral_temp_1998_DIC.nc')                
+SST1998<-stack(SST19981,SST19982)
 ```
 # 2. Monthly SST Statistical Descriptors
 <hr>
@@ -990,7 +990,7 @@ raster(SST_POT)
 ```{r naming, warning=FALSE, message=FALSE,fig.align="center"}
 setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/01_Daily_data/01_SST_data/")
 names(SST_POT)
-date=c("X1998.01.16.12.00.00", "X1998.02.15.00.00.00","X1998.03.16.12.00.00"
+date<-c("X1998.01.16.12.00.00", "X1998.02.15.00.00.00","X1998.03.16.12.00.00"
        ,"X1998.04.16.00.00.00", "X1998.05.16.12.00.00","X1998.06.16.00.00.00"
        ,"X1998.07.16.12.00.00" ,"X1998.08.16.12.00.00","X1998.09.16.00.00.00"
        ,"X1998.10.16.12.00.00", "X1998.11.16.00.00.00","X1998.12.16.12.00.00"
@@ -1093,7 +1093,7 @@ names(SST_POT)#To be sure that the names were changed
 ```{r OM SST , warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10, fig.cap="Fig.1. Overall mean of SST in ETP from 1998 to 2020"}
 #Overall mean of SST
 #Open monthly record of SST 
-SST_POT_OM=mean(SST_POT, na.rm=T)#to calculate the monthly mean from 1998 to 2020
+SST_POT_OM<-mean(SST_POT, na.rm=T)#to calculate the monthly mean from 1998 to 2020
 writeRaster(SST_POT_OM,"OM_SST_POT.tif",overwrite =T)
 raster(SST_POT_OM)
 plot(SST_POT_OM)
@@ -1101,7 +1101,7 @@ plot(SST_POT_OM)
 <p> Compute overall SD of the SST of ETP from 1998 to 2020 </p>
 ```{r OSD SST, warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10, fig.cap="Fig.2. Overall SD of SST in ETP from 1998 to 2020"}
 #Overall SD of SST
-SST_POT_OsD=calc(SST_POT, sd, na.rm=T)#to calculate the Overall SD of SST of POT
+SST_POT_OsD<-calc(SST_POT, sd, na.rm=T)#to calculate the Overall SD of SST of POT
 writeRaster(SST_POT_OsD,"SST_OSD_POT_1998-2020.tif",overwrite=TRUE)
 raster("SST_OSD_POT_1998-2020.tif")
 plot(SST_POT_OsD)
@@ -1114,7 +1114,7 @@ plot(SST_POT_OsD)
 
 
 ```{r idexing, warning=FALSE, message=FALSE,fig.cap="Fig.3. Monthly mean of SST in ETP from 1998 to 2020"}
-dateind10=c()# Create an object that will have all months 
+dateind10<-c()# Create an object that will have all months 
 for (y in 1998:2020) {# iteration from January 1998 to December 2020
   for (m10 in 1:12) {#Iteration for each month (from January to December)
     mc10 = m10
@@ -1140,21 +1140,21 @@ for (m10 in 1:12) {# Iteration to calculate the mean of each month where m=1(01;
   
   SST_means <- stack(SST_means, mean(stackMON10, na.rm=T)) #The average of all the years of each month is calculated, that is, the averages of January are taken from 1998-2020, and so on until 2020
 }
-names(SST_means)=c('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December')#Change the name of 01 to January and so on...
+names(SST_means)<-c('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December')#Change the name of 01 to January and so on...
 plot(SST_means)
 ```
 <p> Maximun monthly mean (MMMSST)
 ```{r MMMSST, warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10, fig.cap="Fig.4. Maximun monthly mean of SST in ETP from 1998 to 2020"}
 #Now we will calculate the hottest and coolest month for each pixel from 1998 to 2020
 #Maximum Monthly mean value of SST 
-MMMSST=(calc(stack(SST_means), max))
+MMMSST<-(calc(stack(SST_means), max))
 plot(MMMSST)
 writeRaster(MMMSST,"MMMax_SST_POT_1998-2020.tif", overwrite=TRUE)#create a raster
 ```
 <p> Minimum monthly mean (MMMSST)
 ```{r Minimum  SST, warning=FALSE, message=FALSE,fig.align="center", fig.width=10, fig.height=10, fig.cap="Fig.5. Maximun monthly mean of SST in ETP from 1998 to 2020"}
 #Minimum  Monthly value of SST  
-MMmSST=(calc(stack(SST_means), min))
+MMmSST<-(calc(stack(SST_means), min))
 plot(MMmSST)
 writeRaster(MMmSST,"MMmin_SST_POT_1998-2020.tif", overwrite=TRUE)#create a raster
 ```
