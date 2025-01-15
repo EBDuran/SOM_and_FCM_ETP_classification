@@ -76,19 +76,19 @@ library(rnaturalearthdata)
 library(corrplot)
 ###Open environmental data
 varPOT=list.files(path="~/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/04_Data_masked/",full.names = T,pattern = ".tif$",all.files=TRUE)
-rast_POT=stack(varPOT)
-layer_names=c("OM_SST","OSD_SST","MaxMM_SST","MinMM_SST","OM_SSS", "OSD_SSS", "OM_Kd490", "OSD_Kd490",
+rast_POT <- stack(varPOT)
+layer_names <- c("OM_SST","OSD_SST","MaxMM_SST","MinMM_SST","OM_SSS", "OSD_SSS", "OM_Kd490", "OSD_Kd490",
               "OM_Cha", "OSD_cha","OM_pH","OSD_pH","OM_SCV","OSD_SCV")
 names(rast_POT)
-names(rast_POT)=layer_names
+names(rast_POT) <- layer_names
 names(rast_POT)
 ####convert data into a data frame
-env_df<- rasterToPoints(rast_POT)
+env_df <- rasterToPoints(rast_POT)
 head(env_df)
 # If a row contains NAs remove it
 # Through layers because they have different land masks
-env_df=na.omit(env_df)
-env_df=env_df[,c(3:16)]#to cut the two first columns that have coordinates data
+env_df <- na.omit(env_df)
+env_df <- env_df[,c(3:16)]#to cut the two first columns that have coordinates data
 head(env_df)#To see the first lines of each column
 correl <- cor(env_df, method='pearson')
 corrplot(correl, type="upper", order="hclust")
@@ -103,13 +103,13 @@ corrplot(round(correl,1), type="upper", order="hclust", method="number", tl.cex=
 #OSD_KD and OM_cha 0.80
 ####After evaluation of  correlation test, we keep MaxMM_SST,Min_SST, OM_SSS, OM_KD, OM_pH, OSD_pH, OM_SCV
 # We create a new corplot without the corralated data
-env_df_clean=env_df[,-c(1,2,6,8,9,10,14)]
+env_df_clean <- env_df[,-c(1,2,6,8,9,10,14)]
 head(env_df_clean)
 correl_clean <- cor(env_df_clean, method='pearson')
 corrplot(correl_clean, type="upper", order="hclust")
 corrplot(round(correl_clean,1), type="upper", order="hclust", method="number", tl.cex=0.6)
 ###Save non correlated data into a new folder 
-nocorenv=rast_POT[[-c(1,2,6,8,9,10,14)]]
+nocorenv <- rast_POT[[-c(1,2,6,8,9,10,14)]]
 plot(nocorenv)
 setwd("C:/Users/Erick Bolaños Durán/Documents/Doctorado/CIBNOR/fourth semester/01_Paper_submition/02_Data/05_Non_correlated_data/")
 lapply(names(nocorenv), function(x){
