@@ -1,20 +1,17 @@
-# Performing a Eastern Tropical Pacific  physicochemical classification usign two methods: Self-Organization Maps and Fuzzy c-means approaches.  
-<p>This is the repository of the information used in the paper "Classifying the seascape of Eastern Tropical Pacific based on physicochemical variables" that is being submitted to the Journal of Environment Management. The satellite images used for the following analyzes are located in the 01_Data folder. Scripts in Rmarkdown format are located in the 02_Methods folder.</p>
+# Performing an Eastern Tropical Pacific Physicochemical Classification using Two Methods: Self-Organizing Maps and Fuzzy c-means Approaches  
 
-The Eastern Tropical Pacific (ETP) is one of the most productive regions in the world, with biological richness and regional endemism. Classifying and describing the seascape is essential to develop policies and protect marine ecosystems. Managers’ interventions
-are more likely to be effective in seascapes with similar environmental characteristics. In this study, we compared four clustering approaches. 
+This is the repository of information used in the paper "Classifying the Seascape of the Eastern Tropical Pacific Based on Physicochemical Variables" that is being submitted to the Journal of Environment Management. The satellite images used for the following analyses are located in the `01_Data` folder. Scripts in Rmarkdown format are located in the `02_Methods` folder.
 
+The Eastern Tropical Pacific (ETP) is one of the most productive regions in the world, known for its biological richness and regional endemism. Classifying and describing the seascape is essential to develop policies and protect marine ecosystems. Managers’ interventions are more likely to be effective in seascapes with similar environmental characteristics. In this study, we compared four clustering approaches:
 
-  <li> 1.- Fuzzy c-means
-  <ul>
-  		<li>1.1.-Classsic Fuzzy c-means (FCM </li>
-  		<li>1.2.- Generalized Fuzzy c-means (GFCM) </li>
-  		<li>1.3.-Generalized Fuzzy c-means (SGFCM) </li>
-    </ul>
-  </li>
-  <li> 2.- Self-Organizing Map  (SOM)</li>
-  
-<P>The methods and workflow used in this study for ETP classification are shown below.</p>
+1. **Fuzzy c-means**
+    - Classic Fuzzy c-means (FCM)
+    - Generalized Fuzzy c-means (GFCM)
+    - Simplified Generalized Fuzzy c-means (SGFCM)
+    
+2. **Self-Organizing Map (SOM)**
+
+The methods and workflow used in this study for ETP classification are shown below.
 
 ![figure01_methods_20_08_2023](https://github.com/EBDuran/SOM_and_FCM_ETP_classification/assets/113937473/3ff85ed5-b6d4-402a-975a-26a9fe68e0f3)
 
