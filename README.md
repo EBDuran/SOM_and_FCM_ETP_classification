@@ -1,4 +1,3 @@
-# Performing an Eastern Tropical Pacific Physicochemical Classification using Two Methods: Self-Organizing Maps (SOM) and Fuzzy c-means 
 This is the repository of information used in the paper "Classifying the Seascape of the Eastern Tropical Pacific Based on Physicochemical Variables"  The satellite images used for the following analyses are located in the `01_Data` folder. Scripts in Rmarkdown format are located in the `02_Methods` folder.
 
 The Eastern Tropical Pacific (ETP) is one of the most productive regions in the world, known for its biological richness and regional endemism. Classifying and describing the seascape is essential to develop policies and protect marine ecosystems. Managers’ interventions are more likely to be effective in seascapes with similar environmental characteristics. In this study, we compared three clustering approaches and a neural network analysis:
@@ -29,15 +28,15 @@ Three soft clustering algorithms were used to classify the ETP seascape:
 The critical parameter values of the three FCM algorithms were evaluated, including the number of clusters (K) and the fuzziness degree (m) for all FCM algorithms, the β parameter for GFCM and SGFCM, the α parameter, and the spatial windows (W) for SGFCM. Different value ranges were evaluated for each parameter to obtain the optimal values: 1) K from 5 to 20, 2) m from 1.1 to 2, 3) β from 0.1 to 0.9, 4) α from 0.5 to 2, and 5) W from 1 to 3. To assess the impact of each parameter value and decide the optimal value, the Silhouette Index (SI) and the Explained Inertia (EI) were calculated. For SGFCM, the Spatial Consistency (SC) was calculated for the α parameter and W. The best values were used to perform the FCM-based classification of the ETP seascape. Furthermore, data with membership values above 0.75 were considered for environmental group classification to ensure distinct clusters and high intra-cluster similarity. The FCM classification processes are detailed in the script **07_FCM_classification.Rmd**.
 
 ## 2.2. SOM-PAM Classification
-### a) and b) Data Reduction and SOM Map Size Selection 
+### a) Data Reduction and SOM Map Size Selection 
 
-The map size is an important parameter in SOM, as the output map will affect the final visualization. While too few nodes produce over-smoothed results, too many nodes result in an over-fitted model. A series of tests using different map arrangements ranging from 4x3 to 9x9 were performed to select the optimal map size and array of neurons in SOM. The Topography Error (TE) and the Percent Variance Explained (PVE) were calculated to select the best map size parameter. TE measures how well the topological patterns of the input data are preserved in the output layer of the SOM. It is calculated as the proportion of observations for which the Best Matching Unit (BMU) is not a neighbor of the second BMU. TE ranges from 0 to 1, where 0 means perfect topology preservation in the map and 1 indicates a topology error characterizes each data point. The scripts for all tests and parameters of map size topology are in **05_SOM_grid_selection.Rmd**.
+The map size is an important parameter in SOM, as the output map will affect the final visualization. While too few nodes produce over-smoothed results, too many nodes result in an over-fitted model. A series of tests using different map arrangements ranging from 4x3 to 9x9 were performed to select the optimal map size and array of neurons in SOM. The Topography Error (TE) and the Percent Variance Explained (PVE) were calculated to select the best map size parameter. TE measures how well the topological patterns of the input data are preserved in the output layer of the SOM. TE ranges from 0 to 1, where 0 means perfect topology preservation in the map and 1 indicates a topology error characterizes each data point. The scripts for all tests and parameters of map size topology are in **05_SOM_grid_selection.Rmd**.
 
-### c) SOM Partition Using PAM 
+### b) SOM Partition Using PAM 
 
 After selecting the best grid size in the previous step, data reduction using SOM was performed. In the next step, the best partition of the SOM map was found using the weight vectors of nodes with the Partitioning Around Medoids (PAM) algorithm. Both processes are detailed in **06_SOM_PAM.Rmd**.
 
-### d) Selection of Optimal Clusters Using GAP 
+### c) Selection of Optimal Clusters Using GAP 
 
 Finally, the GAP statistic was used to find the optimal number of clusters.
 
