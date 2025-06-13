@@ -22,7 +22,7 @@ The methods and workflow used in this study for ETP classification are shown bel
 
 ## 1.-Data processing
 
-The satellite images used for the following analyses are located in the [`01_Data` folder] (https://github.com/EBDuran/SOM_and_FCM_ETP_classification/tree/main/01_Data). Scripts in Rmarkdown format are located in the `02_Methods` folder.
+The satellite images used for the following analyses are located in the [`01_Data` folder](https://github.com/EBDuran/SOM_and_FCM_ETP_classification/tree/main/01_Data). Scripts in Rmarkdown format are located in the `02_Methods` folder.
 The firts step is proscesing the six
 physicochemical variables: Sea Surface Temperature (SST), salinity, Chlorophyll concentration (Cha), pH, diffuse attenuation coefficient at 490 nm (KD490) as a proxy for turbidity, and sea current velocity (SCV). The description of the spatial and temporal resolution of each variable and the repository
 that was retrieved is in Table 2 of the manuscrit. In the script **01_Daily_variables.Rmd** the overall mean (OM), overall standard deviation (OSD), the maximum monthly mean (MMMSST) and minimum monthly mean (mMMSST) of SST were calculated.  In **02_Monthly_variables.Rmd** script the same descriptors were calculated for the rest of variables. The rasters were masked with the ETP area  proposed by Spalding (**03_Masking_raster.Rmd**), then, acollinearity test was conducted using Pearson correlation coefficients (R), and high correlations variables (R> ±0.7) were identified and removed  (**04_Correlation_test.Rmd**)
