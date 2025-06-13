@@ -1,4 +1,6 @@
-#
+# Classifying the seascape of eastern tropical pacific based on physicochemical variables
+## Information repository for Manuscript
+
 
 This is the repository of information used in the paper "Classifying the Seascape of the Eastern Tropical Pacific Based on Physicochemical Variables"  The satellite images used for the following analyses are located in the `01_Data` folder. Scripts in Rmarkdown format are located in the `02_Methods` folder.
 
