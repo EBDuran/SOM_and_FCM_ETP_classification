@@ -1,6 +1,6 @@
 # Classifying the seascape of eastern tropical pacific based on physicochemical variables
 ## Information repository for Manuscript
-
+Bolaños-Durán, E, Muñiz-Castillo, A.I., Valenzuela-Quiñonez, F., Paz-García, D.A.2025. Classifying the seascape of eastern tropical pacific based on physicochemical variables.  *Marine Environmental Research*.https://doi.org/10.1016/j.marenvres.2025.107294 
 
 This is the repository of information used in the paper "Classifying the Seascape of the Eastern Tropical Pacific Based on Physicochemical Variables"  The satellite images used for the following analyses are located in the `01_Data` folder. Scripts in Rmarkdown format are located in the `02_Methods` folder.
 
