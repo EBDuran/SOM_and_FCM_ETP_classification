@@ -1,6 +1,6 @@
 This is the repository of information used in the paper "Classifying the Seascape of the Eastern Tropical Pacific Based on Physicochemical Variables"  The satellite images used for the following analyses are located in the `01_Data` folder. Scripts in Rmarkdown format are located in the `02_Methods` folder.
 
-The Eastern Tropical Pacific (ETP) is one of the most productive regions in the world, known for its biological richness and regional endemism. Classifying and describing the seascape is essential to develop policies and protect marine ecosystems. Managers’ interventions are more likely to be effective in seascapes with similar environmental characteristics. In this study, we compared three clustering approaches and a neural network analysis:
+The Eastern Tropical Pacific (ETP) is one of the most productive regions in the world, known for its biological richness and regional endemism. Classifying and describing the seascape is essential to develop policies and protect marine ecosystems. Managers’ interventions are more likely to be effective in seascapes with similar environmental characteristics. In this study, we compared three clustering algorithms and a neural network analysis:
 
 1. **Fuzzy c-means**
     - Classic Fuzzy c-means (FCM)
