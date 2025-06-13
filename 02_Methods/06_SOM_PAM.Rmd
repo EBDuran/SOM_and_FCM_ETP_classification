@@ -189,11 +189,11 @@ plot(tsom8x9$SOM, type = "property", property = getCodes(tsom8x9$SOM)[,7],palett
 
 ## 4.- Optimal numbers of K with Gap static
 
-<p>Selection of the optimal number of clusters using GAP from SOM-PAM
+<p>Selection of the optimal number of clusters using GAP and elbow method from SOM-PAM
 partitioning</p>
 
-```{r GAP static,fig.align="center", fig.height=15, fig.width=15,fig.cap="Fig.11. Determining the best grid option based in number of clusters (K) selected by GAP static (Gapk) after the SOM model"}
-
+```{r GAP static and elbow,fig.align="center", fig.height=15, fig.width=15,fig.cap="Fig.11. Determining the best grid option based in number of clusters (K) selected by GAP static (Gapk) after the SOM model"}
+#### GAP ###
 Gap_8x9 <- fviz_gap_stat(tsom8x9$SOMgap, maxSE=list(method = "globalSEmax"))+expand_limits(x=c(1,25), y=c(-0.50, 1.5)) +
   labs(title="Optimal number of cluster with SOM grid array of 8x9",
        x="Number of cluster (K)", y="Gap static (GapK)")+
@@ -203,6 +203,23 @@ Gap_8x9 <- fviz_gap_stat(tsom8x9$SOMgap, maxSE=list(method = "globalSEmax"))+exp
         plot.title = element_text(size=30, family = "serif",hjust = 0.5) )
 
 Gap_8x9
+#### Elbow ###
+
+SOM_codebooks<-kohonen::getCodes(tsom8x9$SOM)
+
+elbow_plot <- fviz_nbclust(SOM_codebooks, FUNcluster = cluster::pam, method = "wss", k.max = 25) +
+  theme_classic() +
+  expand_limits(x = c(1, 25)) +
+  scale_x_discrete(breaks = 1:25) +
+  labs(x = "Number of clusters (K)", y = "Total within-cluster sum of square", title = NULL) +
+  theme(
+    axis.text.x = element_text(size = 26, family = "serif", color = "black"),
+    axis.text.y = element_text(size = 26, family = "serif", color = "black"),
+    axis.title  = element_text(size = 28, family = "serif", color = "black"),
+    plot.title  = element_blank()
+  )
+
+print(elbow_plot)
 ```
 
 ## 5.- Rasterization of SOM-PAM result
@@ -218,7 +235,7 @@ Tropical Pacific (ETP) classification</p>
 setwd("d:/Estudiantes/Erick_Bolaños/01_Tesis/01_Seascape_characterization/11_SOM_8x9/03_Results/")
 
 tpam8x9 <- som_pam(ref.rast= env.data, kohsom = tsom8x9$SOM, k=tsom8x9$Kopt)
-pam_final8x9=tpam8x9$sompam.rast$SOMPAM
+pam_final8x9<-tpam8x9$sompam.rast$SOMPAM
 plot(pam_final8x9, main=" ETP SOM-PAM classification (13 groups)")
 raster::writeRaster(pam_final8x9, "PAMfinal_SOM8x9_2.tif", overwrite=T)  #To save the raster of SOM-PAM classification and modify in a GIS program 
 
